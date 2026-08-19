@@ -1,0 +1,22 @@
+{
+  "$schema": "./schemas/app-config.schema.json",
+  "name": "Video Contact Sheet",
+  "nameJa": "Video Contact Sheet",
+  "slug": "video-contact-sheet",
+  "version": "1.0.0",
+  "description": "Create a single contact sheet image from evenly sampled video frames, entirely in the browser.",
+  "descriptionJa": "動画全体から均等にフレームを取得し、一枚のコンタクトシート画像をブラウザ内だけで作成します。",
+  "defaultLanguage": "auto",
+  "repository": {
+    "owner": "ttomohisa",
+    "name": "htmlapps-video-contact-sheet"
+  },
+  "build": {
+    "output": "dist/index.html",
+    "blockRuntimeNetwork": true,
+    "selfExtract": {
+      "enabled": true,
+      "output": "dist/index.self-extract.html"
+    }
+  }
+}

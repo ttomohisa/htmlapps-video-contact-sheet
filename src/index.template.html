@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f5f5f2">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' blob:; style-src 'unsafe-inline'; img-src data: blob:; media-src blob:; worker-src blob:; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Video Contact Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTUiIGZpbGw9IiMxNjYyNGYiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiPjxyZWN0IHg9IjE0IiB5PSIxNiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjEzIiByeD0iMiIvPjxyZWN0IHg9IjM0IiB5PSIxNiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjEzIiByeD0iMiIvPjxyZWN0IHg9IjE0IiB5PSIzNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjEzIiByeD0iMiIvPjxyZWN0IHg9IjM0IiB5PSIzNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjEzIiByeD0iMiIvPjwvZz48L3N2Zz4=">
+<style>
+:root{color-scheme:light;--bg:#f5f5f2;--surface:#fff;--surface2:#f0f0ed;--surface3:#e9e9e5;--text:#20211f;--muted:#686a65;--line:#dadbd6;--line2:#bfc1ba;--accent:#16624f;--accent2:#0e503f;--soft:#e1f0ea;--danger:#b3261e;--focus:#4d8bc7;--shadow:0 1px 2px rgba(25,28,24,.08),0 1px 7px rgba(25,28,24,.04);--shadow2:0 18px 48px rgba(25,28,24,.14);--radius:14px;--bottom:0px;--app-mobile-bottom-bar-height:74px;--app-mobile-bottom-accent:var(--accent);--app-mobile-bottom-accent-soft:var(--soft);--app-mobile-bottom-muted:var(--muted);--app-mobile-bottom-line:var(--line)}
+*{box-sizing:border-box}html{background:var(--bg);min-height:100%;scroll-behavior:smooth}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}button,input{font:inherit;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid color-mix(in srgb,var(--focus) 55%,transparent);outline-offset:2px}.hidden{display:none!important}
+.header{position:sticky;top:0;z-index:40;border-bottom:1px solid color-mix(in srgb,var(--line) 82%,transparent);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px) saturate(1.2)}.header-in{width:min(1100px,100%);min-height:64px;margin:auto;padding:9px clamp(14px,3vw,28px);display:flex;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:10px;min-width:0}.mark{width:38px;height:38px;border-radius:11px;background:var(--accent);display:grid;place-items:center;color:#fff;flex:none;box-shadow:var(--shadow)}.mark svg{width:22px}.brand h1{font-size:17px;line-height:1.15;margin:0;white-space:nowrap}.ver{margin-left:6px;padding:1px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface2);color:var(--muted);font-size:10px;vertical-align:2px}.brand p{margin:2px 0 0;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.head-actions{margin-left:auto;display:flex;align-items:center;gap:13px}.bare{border:0;background:transparent;padding:5px 1px;color:var(--muted);font-size:12px;font-weight:750}.bare:hover{color:var(--text)}.help{display:grid;place-items:center;width:28px;height:32px;border:0;background:transparent;color:var(--muted);padding:0}.help:hover{color:var(--text)}.help svg{width:20px}
+.main{width:min(1100px,100%);margin:auto;padding:22px clamp(14px,3vw,28px) calc(56px + var(--bottom))}.intro{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:0 2px 18px}.intro h2{margin:0;font-size:clamp(22px,4vw,29px);line-height:1.25;letter-spacing:-.03em}.intro p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:670px}.local{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid color-mix(in srgb,var(--accent) 23%,var(--line));border-radius:999px;background:var(--soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}.local svg{width:14px}
+.panel{border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}.panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.panel-head h3{font-size:18px;margin:0;letter-spacing:-.02em}.panel-head p{font-size:12px;color:var(--muted);margin:4px 0 0}.step{color:var(--accent);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.drop{min-height:170px;border:1.5px dashed var(--line2);border-radius:15px;background:#fbfbf9;display:grid;place-items:center;padding:22px;text-align:center;transition:.15s}.drop.drag{border-color:var(--accent);background:var(--soft)}.drop:hover{border-color:var(--accent)}.drop-icon{width:46px;height:46px;border-radius:13px;background:var(--surface2);display:grid;place-items:center;margin:0 auto 10px}.drop-icon svg{width:23px}.drop strong{display:block;font-size:15px}.drop span{display:block;margin-top:4px;color:var(--muted);font-size:11px}.select-btn{margin-top:13px;min-height:40px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-weight:750}.select-btn:hover{background:var(--surface3);border-color:var(--line2)}#file{display:none}.file-card{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin-top:12px}.file-visual{position:relative;width:88px;aspect-ratio:16/9;overflow:hidden;border-radius:9px;background:#1d211f;display:grid;place-items:center;flex:none;color:#c7cbc6}.file-visual svg{width:20px}.file-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.file-visual.is-loading::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.12) 48%,transparent 72%);transform:translateX(-100%);animation:fileThumbShimmer 1.15s ease-in-out infinite}.file-visual.has-thumbnail svg{display:none}@keyframes fileThumbShimmer{to{transform:translateX(100%)}}.file-copy{min-width:0;flex:1}.file-name{font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-meta{color:var(--muted);font-size:11px}.file-clear{border:0;background:transparent;color:var(--muted);padding:6px}.file-clear:hover{color:var(--danger)}
+.count-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.count{position:relative;min-height:90px;border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:13px;text-align:left}.count:hover{border-color:var(--line2);background:#fbfbf9}.count.active{border-color:var(--accent);background:var(--soft);box-shadow:0 0 0 1px var(--accent) inset}.count strong{display:block;font-size:23px;line-height:1}.count span{display:block;margin-top:5px;color:var(--muted);font-size:11px}.count .grid-mini{position:absolute;right:12px;top:13px;display:grid;gap:2px;opacity:.5}.count .grid-mini i{display:block;width:5px;height:5px;border-radius:1px;background:currentColor}.count.active .grid-mini{color:var(--accent);opacity:.9}
+.options{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.switchline{display:flex;align-items:center;gap:9px;font-size:12px}.switch{position:relative;width:38px;height:22px;flex:none}.switch input{position:absolute;opacity:0}.track{position:absolute;inset:0;border-radius:999px;background:#c8cac4;transition:.16s}.track:after{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.16s}.switch input:checked+.track{background:var(--accent)}.switch input:checked+.track:after{transform:translateX(16px)}
+.generate{width:100%;min-height:52px;border:1px solid var(--accent);border-radius:12px;background:var(--accent);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}.generate:hover{background:var(--accent2)}.generate:disabled{cursor:not-allowed;opacity:.46}.generate svg{width:18px}.hint{margin:8px 0 0;text-align:center;color:var(--muted);font-size:10px}.progress-wrap{padding:14px;border-radius:12px;background:var(--surface2);margin-top:14px}.progress-top{display:flex;justify-content:space-between;gap:10px;font-size:11px;margin-bottom:7px}.progress-track{height:7px;background:#dadbd6;border-radius:99px;overflow:hidden}.progress-bar{height:100%;width:0;background:var(--accent);transition:width .16s linear}.progress-status{font-weight:750}.progress-pct{color:var(--muted);font-variant-numeric:tabular-nums}
+.result{padding:0;overflow:hidden}.result-head{padding:18px 20px 15px;display:flex;gap:16px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line)}.result-head h3{margin:0;font-size:18px}.result-head p{margin:4px 0 0;color:var(--muted);font-size:11px}.result-stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pill{padding:5px 8px;border-radius:999px;background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700}.canvas-wrap{padding:16px;background:#e8e8e4;overflow:auto;max-height:72vh}.canvas-shell{position:relative;width:max-content;max-width:none;margin:auto;background:#111;box-shadow:0 10px 35px rgba(0,0,0,.2);cursor:zoom-in;touch-action:manipulation}.canvas-shell:hover .zoom-preview-hint,.canvas-shell:focus-visible .zoom-preview-hint{opacity:1;transform:translateY(0)}.zoom-preview-hint{position:absolute;right:9px;bottom:9px;display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:rgba(18,20,18,.78);color:#fff;font-size:10px;font-weight:750;pointer-events:none;opacity:.82;transform:translateY(1px);transition:.15s}.zoom-preview-hint svg{width:14px;height:14px}canvas{display:block;max-width:min(100%,1000px);height:auto}.result-actions{padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px 14px;font-weight:750}.btn:hover{background:var(--surface3);border-color:var(--line2)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{background:var(--accent2)}.result-actions .spacer{flex:1}.filename-field{display:grid;gap:5px;min-width:min(100%,360px);flex:1 1 300px}.filename-field label{font-size:10px;font-weight:800;color:var(--muted)}.filename-input{width:100%;height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 11px;font:12px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}.filename-input:focus{border-color:var(--accent)}.filename-help{font-size:9px;color:var(--muted);line-height:1.35}.format-group{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}.format-group button{min-height:40px;border:0;border-right:1px solid var(--line);background:var(--surface);padding:7px 11px;font-size:11px;font-weight:750}.format-group button:last-child{border-right:0}.format-group button.active{background:var(--soft);color:var(--accent)}
+.error{margin-top:12px;padding:12px 13px;border-radius:11px;background:#fff1f0;border:1px solid #f0c4c0;color:#85231d;font-size:12px}.details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.details summary{cursor:pointer;color:var(--muted);font-size:11px;font-weight:750}.log{max-height:170px;overflow:auto;margin-top:9px;padding:10px;border-radius:9px;background:#242521;color:#e8e8e4;font:10px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.empty-result{display:grid;place-items:center;min-height:180px;text-align:center;color:var(--muted)}.empty-result svg{width:36px;margin-bottom:8px;opacity:.55}.empty-result strong{display:block;color:var(--text);font-size:13px}.empty-result span{display:block;font-size:11px;margin-top:3px}
+.dialog-backdrop{position:fixed;inset:0;z-index:100;background:rgba(18,20,18,.35);display:grid;place-items:center;padding:18px}.dialog{width:min(560px,100%);max-height:min(82vh,760px);overflow:auto;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow2)}.dialog-head{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);padding:15px 17px;display:flex;gap:12px;align-items:center;z-index:1}.dialog-head h2{margin:0;font-size:17px}.dialog-close{margin-left:auto;width:34px;height:34px;border:0;background:transparent;border-radius:9px;font-size:20px;color:var(--muted)}.dialog-close:hover{background:var(--surface2)}.dialog-body{padding:17px}.dialog-body h3{font-size:13px;margin:18px 0 5px}.dialog-body h3:first-child{margin-top:0}.dialog-body p,.dialog-body li{color:var(--muted);font-size:12px}.dialog-body ul{padding-left:19px}.tech{padding:10px 12px;border-radius:10px;background:var(--surface2);font-size:11px;color:var(--muted)}.confirm-box{width:min(430px,100%)}.confirm-body{padding:19px}.confirm-body h2{font-size:17px;margin:0 0 7px}.confirm-body p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.confirm-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 19px 19px}
+
+.zoom-viewer{position:fixed;inset:0;z-index:140;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:rgba(9,10,9,.96);color:#fff;overscroll-behavior:none}.zoom-toolbar{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:rgba(18,20,18,.94);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px)}.zoom-toolbar-title{font-size:12px;font-weight:800;margin-right:auto;white-space:nowrap}.zoom-control{min-height:38px;padding:7px 10px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:11px;font-weight:750}.zoom-control:hover{background:rgba(255,255,255,.14)}.zoom-scale{min-width:52px;text-align:center;font:700 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace;color:#d8dad6}.zoom-close{width:40px;padding:0;font-size:21px;line-height:1}.zoom-viewport{position:relative;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}.zoom-viewport.is-dragging{cursor:grabbing}.zoom-image{position:absolute;left:50%;top:50%;max-width:none;max-height:none;width:auto;height:auto;transform-origin:center center;will-change:transform;pointer-events:none;-webkit-user-drag:none}.zoom-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.09);color:#d8dad6;font-size:11px}.zoom-footer{padding:9px 12px calc(9px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.1);background:rgba(18,20,18,.94);color:#bfc3bd;font-size:10px;text-align:center}.zoom-viewer.hidden{display:none!important}body.zoom-open{overflow:hidden}
+.app-mobile-bottom-bar{display:none}
+@media(max-width:600px){body.has-mobile-bottom-bar{padding-bottom:calc(var(--app-mobile-bottom-bar-height) + env(safe-area-inset-bottom))}.app-mobile-bottom-bar{position:fixed;z-index:80;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(var(--app-mobile-bottom-items,4),minmax(0,1fr));gap:4px;padding:6px 10px calc(6px + env(safe-area-inset-bottom));border-top:1px solid color-mix(in srgb,var(--app-mobile-bottom-line) 82%,transparent);background:rgba(255,255,255,.94);box-shadow:0 -8px 24px rgba(20,22,20,.06);backdrop-filter:blur(18px) saturate(1.35)}.app-mobile-bottom-item{position:relative;min-width:0;min-height:54px;padding:5px 4px;border:0;border-radius:12px;background:transparent;color:var(--app-mobile-bottom-muted);display:grid;place-items:center;align-content:center;gap:3px;font:inherit;font-size:10px;font-weight:750;line-height:1.15;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.app-mobile-bottom-item svg{width:21px;height:21px}.app-mobile-bottom-item span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.app-mobile-bottom-item:hover,.app-mobile-bottom-item:focus-visible,.app-mobile-bottom-item.is-active,.app-mobile-bottom-item[aria-current="page"]{color:var(--app-mobile-bottom-accent);background:var(--app-mobile-bottom-accent-soft)}.app-mobile-bottom-item.primary:not(:disabled){color:var(--app-mobile-bottom-accent);background:var(--app-mobile-bottom-accent-soft)}.app-mobile-bottom-item:disabled{opacity:.36;cursor:default;background:transparent}}
+@media(prefers-reduced-motion:reduce){.app-mobile-bottom-item{scroll-behavior:auto}}
+@media(max-width:600px){.desktop-generate{display:none}.result-actions .primary{display:none}}
+@media(max-width:680px){.file-visual{width:76px}.file-card{padding:10px}.file-meta{line-height:1.4}:root{--bottom:0px}.header-in{min-height:60px}.brand p{display:none}.mark{width:35px;height:35px}.brand h1{font-size:15px}.main{padding-top:16px}.intro{display:block;padding-bottom:14px}.intro h2{font-size:22px}.intro .local{margin-top:10px}.panel{padding:16px;border-radius:15px}.panel-head{margin-bottom:13px}.drop{min-height:148px;padding:18px 12px}.count-grid{gap:7px}.count{min-height:80px;padding:11px 10px}.count strong{font-size:21px}.count span{font-size:10px}.count .grid-mini{display:none}.result-head{padding:15px 16px;display:block}.result-stats{justify-content:flex-start;margin-top:9px}.canvas-wrap{padding:8px;max-height:65vh}.result-actions{padding:12px}.dialog-backdrop{align-items:end;padding:0}.dialog{width:100%;max-height:86vh;border-radius:18px 18px 0 0;border-bottom:0}.head-actions{gap:10px}}
+@media(max-width:600px){}
+@media(max-width:390px){.version-text{display:none}.head-actions{gap:7px}.count span{display:none}.count{min-height:62px}.drop span{max-width:260px;margin-left:auto;margin-right:auto}}
+</style>
+</head>
+<body class="has-mobile-bottom-bar">
+<header class="header"><div class="header-in"><div class="brand"><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="7" height="6" rx="1.2"/><rect x="14" y="4" width="7" height="6" rx="1.2"/><rect x="3" y="14" width="7" height="6" rx="1.2"/><rect x="14" y="14" width="7" height="6" rx="1.2"/></svg></div><div><h1>Video Contact Sheet <span class="ver"><span class="version-text">v</span>1.0.0</span></h1><p data-i18n="tagline">動画全体を、一枚で見渡す。</p></div></div><div class="head-actions"><button class="bare" id="langBtn" type="button" aria-label="Switch language">EN</button><button class="help" id="helpBtn" type="button" aria-label="使い方と注意事項"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.7 2c-1 .7-1.5 1.1-1.5 2.3M12 17h.01" stroke-linecap="round"/></svg></button></div></div></header>
+<main class="main">
+<section class="intro"><div><h2 data-i18n="introTitle">動画の流れを、一枚の画像に。</h2><p data-i18n="introText">動画全体から均等にフレームを取り出して、確認しやすいコンタクトシートを作ります。</p></div><div class="local"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4.5 6v5.4c0 4.6 3.1 7.9 7.5 9.6 4.4-1.7 7.5-5 7.5-9.6V6L12 3Z"/><path d="m9 12 2 2 4-5"/></svg><span data-i18n="local">完全ローカル処理</span></div></section>
+<section class="panel" id="sourcePanel"><div class="panel-head"><div><div class="step">STEP 1</div><h3 data-i18n="chooseVideo">動画を選ぶ</h3><p data-i18n="chooseHint">ファイルは外部へ送信されません。</p></div></div><div class="drop" id="drop" tabindex="0" role="button" aria-label="動画を選択"><div><div class="drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5Z"/><path d="m9.5 9 5 3-5 3V9Z" fill="currentColor" stroke="none"/></svg></div><strong data-i18n="dropTitle">動画をここにドロップ</strong><span data-i18n="dropSub">またはボタンから動画ファイルを選択</span><button type="button" class="select-btn" id="selectBtn" data-i18n="selectFile">動画を選択</button></div></div><input id="file" type="file" accept="video/*,.mkv,.webm,.avi,.ts,.mts,.m2ts,.mov,.mp4,.m4v">
+<div id="fileCard" class="file-card hidden"><div id="fileVisual" class="file-visual" aria-hidden="true"><img id="fileThumb" class="hidden" alt=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m9 9 6 3-6 3V9Z" fill="currentColor" stroke="none"/></svg></div><div class="file-copy"><div id="fileName" class="file-name"></div><div id="fileMeta" class="file-meta"></div></div><button id="clearBtn" class="file-clear" type="button" aria-label="ファイルを外す">×</button></div></section>
+<section class="panel" id="countPanel"><div class="panel-head"><div><div class="step">STEP 2</div><h3 data-i18n="pickCount">フレーム数を選ぶ</h3><p data-i18n="pickHint">動画全体から均等に取得します。</p></div></div><div class="count-grid" id="countGrid">
+<button type="button" class="count active" data-count="12"><strong>12<span data-i18n="sheetsSuffix">枚</span></strong><span data-i18n="count12">まず全体を見る</span><span class="grid-mini" style="grid-template-columns:repeat(4,5px)"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+<button type="button" class="count" data-count="24"><strong>24<span data-i18n="sheetsSuffix">枚</span></strong><span data-i18n="count24">標準</span><span class="grid-mini" style="grid-template-columns:repeat(6,5px)"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+<button type="button" class="count" data-count="48"><strong>48<span data-i18n="sheetsSuffix">枚</span></strong><span data-i18n="count48">細かく確認</span><span class="grid-mini" style="grid-template-columns:repeat(8,5px)"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+</div><div class="options"><label class="switchline"><span class="switch"><input id="timestamps" type="checkbox" checked><span class="track"></span></span><span data-i18n="showTimes">各コマに時刻を表示</span></label></div></section>
+<section class="panel" id="generatePanel"><div class="panel-head"><div><div class="step">STEP 3</div><h3 data-i18n="generateTitle">コンタクトシートを生成</h3><p data-i18n="generateHint">長時間動画は必要な地点へ移動しながら処理します。</p></div></div><button class="generate desktop-generate" id="generateBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="generate">コンタクトシートを生成</span></button><p class="hint desktop-generate" data-i18n="engineHint">FFmpeg WebAssembly / 再エンコード・アップロードなし</p><div id="progressWrap" class="progress-wrap hidden"><div class="progress-top"><span id="progressStatus" class="progress-status" data-i18n="preparing">準備しています…</span><span id="progressPct" class="progress-pct">0%</span></div><div class="progress-track"><div id="progressBar" class="progress-bar"></div></div></div><div id="error" class="error hidden"></div><details id="details" class="details hidden"><summary data-i18n="details">処理ログ</summary><div id="log" class="log"></div></details></section>
+<section class="panel result" id="resultPanel"><div class="result-head"><div><div class="step">RESULT</div><h3 data-i18n="resultTitle">生成結果</h3><p id="resultSub" data-i18n="resultEmptySub">生成するとここにプレビューが表示されます。</p></div><div id="resultStats" class="result-stats hidden"></div></div><div id="emptyResult" class="empty-result"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="8" height="7" rx="1"/><rect x="13" y="13" width="8" height="7" rx="1"/></svg><strong data-i18n="emptyTitle">まだ生成されていません</strong><span data-i18n="emptySub">動画を選んで、12 / 24 / 48枚から選択してください。</span></div></div><div id="canvasWrap" class="canvas-wrap hidden"><div id="canvasShell" class="canvas-shell" role="button" tabindex="0" aria-label="プレビューを拡大"><canvas id="canvas"></canvas><span class="zoom-preview-hint" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M11 8v6M8 11h6"/></svg><span data-i18n="zoomOpen">拡大して確認</span></span></div></div><div id="resultActions" class="result-actions hidden"><div class="filename-field"><label for="outputFilename" data-i18n="outputFilename">保存ファイル名</label><input id="outputFilename" class="filename-input" type="text" maxlength="160" autocomplete="off" enterkeyhint="done"><span class="filename-help" data-i18n="outputFilenameHint">PNG / JPEGに合わせて拡張子を自動調整します。</span></div><div class="format-group"><button type="button" class="active" data-format="png">PNG</button><button type="button" data-format="jpeg">JPEG</button></div><div class="spacer"></div><button id="regenerateBtn" type="button" class="btn" data-i18n="regenerate">再生成</button><button id="saveBtn" type="button" class="btn primary" data-i18n="saveImage">画像を保存</button></div></section>
+</main>
+<nav class="app-mobile-bottom-bar" id="appMobileBottomBar" style="--app-mobile-bottom-items:4" aria-label="Mobile actions">
+<button class="app-mobile-bottom-item is-active" id="mobileVideo" type="button" data-mobile-key="video" data-mobile-target="sourcePanel" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m9 9 6 3-6 3V9Z"/></svg><span data-i18n="mobileVideo">動画</span></button>
+<button class="app-mobile-bottom-item" id="mobileFrames" type="button" data-mobile-key="frames" data-mobile-target="countPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><span data-i18n="mobileFrames">枚数</span></button>
+<button class="app-mobile-bottom-item primary" id="mobileGenerate" type="button" data-mobile-key="generate" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg><span data-i18n="mobileGenerate">生成</span></button>
+<button class="app-mobile-bottom-item" id="mobileSave" type="button" data-mobile-key="save" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4M8 16h8"/></svg><span data-i18n="mobileSave">保存</span></button>
+</nav>
+<div id="regenerateDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="regenerateConfirmTitle"><div class="dialog confirm-box"><div class="confirm-body"><h2 id="regenerateConfirmTitle" data-i18n="regenerateConfirmTitle">同じ設定でもう一度生成しますか？</h2><p data-i18n="regenerateConfirmText">動画とフレーム数が前回の生成時から変わっていません。同じ処理をもう一度実行します。</p></div><div class="confirm-actions"><button id="regenerateCancel" type="button" class="btn" data-i18n="cancel">キャンセル</button><button id="regenerateConfirm" type="button" class="btn primary" data-i18n="generateAgain">もう一度生成</button></div></div></div>
+<div id="zoomViewer" class="zoom-viewer hidden" role="dialog" aria-modal="true" aria-labelledby="zoomViewerTitle">
+  <div class="zoom-toolbar">
+    <span id="zoomViewerTitle" class="zoom-toolbar-title" data-i18n="zoomTitle">プレビューを拡大</span>
+    <button id="zoomFit" type="button" class="zoom-control" data-i18n="zoomFit">全体表示</button>
+    <button id="zoom100" type="button" class="zoom-control">100%</button>
+    <span id="zoomScale" class="zoom-scale">100%</span>
+    <button id="zoomClose" type="button" class="zoom-control zoom-close" aria-label="閉じる">×</button>
+  </div>
+  <div id="zoomViewport" class="zoom-viewport">
+    <div id="zoomLoading" class="zoom-loading" data-i18n="zoomPreparing">プレビューを準備中…</div>
+    <img id="zoomImage" class="zoom-image hidden" alt="" draggable="false">
+  </div>
+  <div class="zoom-footer" data-i18n="zoomHelp">ピンチまたはホイールで拡大・縮小。ドラッグで移動。ダブルタップ / ダブルクリックで100%表示を切り替えます。</div>
+</div>
+<div id="helpDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="dialog"><div class="dialog-head"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button id="helpClose" type="button" class="dialog-close" aria-label="閉じる">×</button></div><div class="dialog-body"><h3 data-i18n="howTitle">使い方</h3><ol><li data-i18n="how1">動画を選択またはドロップします。</li><li data-i18n="how2">12枚・24枚・48枚から確認したい細かさを選びます。</li><li data-i18n="how3">「コンタクトシートを生成」を押します。</li><li data-i18n="how4">プレビューを確認し、PNGまたはJPEGで保存します。</li></ol><h3 data-i18n="privacyTitle">プライバシー</h3><p data-i18n="privacyText">動画はブラウザー内だけで処理されます。ネットワーク通信はCSPで禁止しており、動画がサーバーへアップロードされることはありません。</p><h3 data-i18n="supportTitle">対応形式</h3><p data-i18n="supportText">MP4/MOV、MKV/WebM、AVI、MPEG-TSなど。H.264、HEVC/H.265（Pixelのhvc1/Main10を含む）、VP8/VP9、AV1、MPEG-4、MJPEG、ProRes等をFFmpeg WASMでデコードします。</p><h3 data-i18n="notesTitle">注意事項</h3><ul><li data-i18n="note1">48枚は12枚より処理時間とメモリ使用量が増えます。</li><li data-i18n="note2">動画によってはキーフレーム位置の影響で、指定時刻の直近フレームが使われます。</li><li data-i18n="note3">DRM保護された動画や、今回のWASMに含まれないコーデックは処理できません。</li><li data-i18n="note4">HDR動画はContact Sheet用のRGB画像へ変換されるため、元動画と色の見え方が異なる場合があります。</li></ul><div class="tech">Video Contact Sheet v1.0.0 · FFmpeg core: LGPL-2.1-or-later</div></div></div></div>
+<script>
+const APP_VERSION='1.0.0';
+const APP_CONFIG=__APP_CONFIG_JSON__;
+const BUILD_MANIFEST=__BUILD_MANIFEST_JSON__;
+const assetBundle=__EMBEDDED_ASSET_BUNDLE_JSON__;
+const decodeBase64Bytes=value=>{const binary=atob(value),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes;};
+const embeddedAssetCache=new Map();
+async function decodeEmbeddedAsset(dependency,key){
+  const cacheKey=`${dependency}/${key}`;
+  if(embeddedAssetCache.has(cacheKey))return embeddedAssetCache.get(cacheKey);
+  const item=assetBundle.dependencies?.[dependency]?.assets?.[key];
+  if(!item)throw new Error(`Embedded asset not found: ${cacheKey}`);
+  let bytes=decodeBase64Bytes(item.base64);
+  if(item.compression==='gzip'){
+    if(typeof DecompressionStream!=='function')throw new Error('This browser does not support gzip decompression required by the compact FFmpeg core.');
+    const stream=new Blob([bytes],{type:'application/gzip'}).stream().pipeThrough(new DecompressionStream('gzip'));
+    bytes=new Uint8Array(await new Response(stream).arrayBuffer());
+  }else if(item.compression){
+    throw new Error(`Unsupported embedded asset compression: ${item.compression}`);
+  }
+  embeddedAssetCache.set(cacheKey,bytes);
+  return bytes;
+}
+window.StandaloneAssets=Object.freeze({
+  bytes(dependency,key){return decodeEmbeddedAsset(dependency,key);},
+  async text(dependency,key){return new TextDecoder().decode(await decodeEmbeddedAsset(dependency,key));}
+});
+</script>
+<script>
+/* Browser runtime for the single-thread public-libav runner. No SharedArrayBuffer required. */
+(() => {
+  "use strict";
+  const PROGRESS_PREFIX = "__FFMPEG_WASM_PROGRESS__";
+
+  const WORKER_BODY = String.raw`
+    (() => {
+    "use strict";
+    const PROGRESS_PREFIX = "__FFMPEG_WASM_PROGRESS__";
+    const ensureParent = (FS, path) => {
+      const index = path.lastIndexOf("/");
+      if (index <= 0) return;
+      try { FS.mkdirTree(path.slice(0, index)); } catch (_) {}
+    };
+    const splitVirtualPath = (path) => {
+      if (typeof path !== "string" || !path.startsWith("/")) throw new Error("Virtual filesystem paths must be absolute: " + path);
+      const index = path.lastIndexOf("/");
+      if (index <= 0 || index === path.length - 1) throw new Error("WORKERFS inputs must be placed inside a directory, for example /workerfs/input.mp4.");
+      return { parent: path.slice(0, index), base: path.slice(index + 1) };
+    };
+    const mountWorkerFiles = (core, files) => {
+      const mounts = new Map();
+      for (const file of files) {
+        const parts = splitVirtualPath(file.name);
+        let entries = mounts.get(parts.parent);
+        if (!entries) { entries = []; mounts.set(parts.parent, entries); }
+        entries.push({ name: parts.base, data: file.data });
+      }
+      if (mounts.size === 0) return;
+      if (!core.WORKERFS) throw new Error("This FFmpeg WASM profile was not built with WORKERFS support.");
+      for (const [mountPoint, blobs] of mounts) {
+        try { core.FS.mkdirTree(mountPoint); } catch (_) {}
+        core.FS.mount(core.WORKERFS, { blobs }, mountPoint);
+      }
+    };
+    self.onmessage = async (event) => {
+      const { wasmBytes, args, files, outputs } = event.data;
+      const sendLine = (stream, value) => {
+        const message = String(value);
+        if (message.startsWith(PROGRESS_PREFIX)) {
+          const progress = Number(message.slice(PROGRESS_PREFIX.length).trim());
+          if (Number.isFinite(progress)) self.postMessage({ type: "progress", progress: Math.max(0, Math.min(1, progress)) });
+          return;
+        }
+        self.postMessage({ type: "log", stream, message });
+      };
+      try {
+        if (typeof createFFmpegCore !== "function") throw new Error("createFFmpegCore factory was not found.");
+        const wasmView = new Uint8Array(wasmBytes);
+        const core = await createFFmpegCore({
+          // Emscripten's generated loader normally resolves ffmpeg.wasm
+          // relative to the JS script.  Our JS runs inside a blob Worker, where
+          // that relative URL is invalid.  Instantiate directly from the bytes
+          // already transferred to this Worker so hosted and file:// single-HTML
+          // execution never depends on URL resolution for the Wasm binary.
+          wasmBinary: wasmView,
+          instantiateWasm: (imports, successCallback) => {
+            const module = new WebAssembly.Module(wasmView);
+            const instance = new WebAssembly.Instance(module, imports);
+            successCallback(instance, module);
+            return instance.exports;
+          },
+          locateFile: (path, prefix) => prefix + path,
+          print: (message) => sendLine("stdout", message),
+          printErr: (message) => sendLine("stderr", message)
+        });
+        const workerFsFiles = [];
+        for (const file of files) {
+          if (file.workerfs) {
+            workerFsFiles.push(file);
+            continue;
+          }
+          ensureParent(core.FS, file.name);
+          core.FS.writeFile(file.name, new Uint8Array(file.data));
+        }
+        mountWorkerFiles(core, workerFsFiles);
+        let exitCode = 0;
+        try {
+          const result = core.callMain(args);
+          if (typeof result === "number") exitCode = result;
+        } catch (error) {
+          if (typeof error?.status === "number" && error.status === 0) exitCode = 0;
+          else throw error;
+        }
+        if (exitCode !== 0) throw new Error("FFmpeg WASM runner exited with code " + exitCode);
+        const resultFiles = [];
+        const transfer = [];
+        for (const name of outputs) {
+          const bytes = core.FS.readFile(name);
+          const copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+          resultFiles.push({ name, data: copy });
+          transfer.push(copy);
+        }
+        self.postMessage({ type: "done", exitCode, files: resultFiles }, transfer);
+      } catch (error) {
+        self.postMessage({ type: "error", name: error?.name || "Error", message: error?.message || String(error), stack: error?.stack || "" });
+      }
+    };
+    })();
+  `;
+
+  const toArrayBuffer = async (value) => {
+    if (value instanceof ArrayBuffer) return value.slice(0);
+    if (ArrayBuffer.isView(value)) return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+    if (value instanceof Blob) return await value.arrayBuffer();
+    throw new TypeError("Input data must be Blob, File, ArrayBuffer, or TypedArray.");
+  };
+
+  const isSupported = () => typeof Worker === "function" && typeof WebAssembly === "object" && typeof Blob === "function" && typeof URL?.createObjectURL === "function";
+  const assertSupported = () => { if (!isSupported()) throw new Error("This browser does not support the FFmpeg WASM runtime."); };
+
+  const createWorker = (coreJsText) => {
+    // Keep the generated Emscripten glue and our Worker body in one Blob.
+    // This avoids nested blob-script loading on file:// pages, where nested
+    // blob URL loading is not portable across browsers.
+    const url = URL.createObjectURL(new Blob([coreJsText, "\n;", WORKER_BODY], { type: "text/javascript;charset=utf-8" }));
+    try {
+      return { worker: new Worker(url), url };
+    } catch (error) {
+      URL.revokeObjectURL(url);
+      throw error;
+    }
+  };
+
+  class FFmpegRunner {
+    constructor(coreJsText, wasmBytes, revokeUrls = []) {
+      this.coreJsText = coreJsText;
+      this.wasmBytes = wasmBytes;
+      this.revokeUrls = revokeUrls;
+      this.disposed = false;
+    }
+    async run(options = {}) {
+      if (this.disposed) throw new Error("Runner has been disposed.");
+      assertSupported();
+      const args = Array.isArray(options.args) ? [...options.args] : [];
+      const outputs = Array.isArray(options.outputs) ? [...options.outputs] : [];
+      const onLog = typeof options.onLog === "function" ? options.onLog : () => {};
+      const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
+      const files = [];
+      const transfer = [];
+      for (const file of Array.isArray(options.files) ? options.files : []) {
+        if (!file?.name) throw new Error("Every input file needs a virtual filesystem name.");
+        if (file.workerfs === true) {
+          if (!(file.data instanceof Blob)) throw new TypeError("WORKERFS input data must be a Blob or File.");
+          if (!file.name.startsWith("/") || file.name.lastIndexOf("/") <= 0) {
+            throw new Error("WORKERFS input names must include a mount directory, for example /workerfs/input.mp4.");
+          }
+          // Blob/File is structured-cloned to the Worker. WORKERFS then reads only
+          // the requested slices instead of copying the whole media file into MEMFS.
+          files.push({ name: file.name, data: file.data, workerfs: true });
+          continue;
+        }
+        const data = await toArrayBuffer(file.data);
+        files.push({ name: file.name, data, workerfs: false });
+        transfer.push(data);
+      }
+      const wasmForRun = this.wasmBytes.slice(0);
+      transfer.push(wasmForRun);
+      return await new Promise((resolve, reject) => {
+        const created = createWorker(this.coreJsText);
+        const worker = created.worker;
+        const finish = () => { worker.terminate(); URL.revokeObjectURL(created.url); };
+        worker.onmessage = (event) => {
+          const message = event.data;
+          if (message?.type === "log") { onLog({ stream: message.stream, message: message.message }); return; }
+          if (message?.type === "progress") { onProgress(message.progress); return; }
+          if (message?.type === "done") {
+            finish();
+            resolve({ exitCode: message.exitCode, files: message.files.map((file) => ({ name: file.name, data: new Uint8Array(file.data) })) });
+            return;
+          }
+          if (message?.type === "error") {
+            finish();
+            const error = new Error(message.message); error.name = message.name || "Error"; error.stack = message.stack || error.stack; reject(error);
+          }
+        };
+        worker.onerror = (event) => { finish(); reject(event.error || new Error(event.message || "FFmpeg WASM worker failed.")); };
+        worker.postMessage({ wasmBytes: wasmForRun, args, files, outputs }, transfer);
+      });
+    }
+    dispose() {
+      if (this.disposed) return;
+      this.disposed = true;
+      for (const url of this.revokeUrls) URL.revokeObjectURL(url);
+      this.revokeUrls = [];
+      this.coreJsText = "";
+      this.wasmBytes = new ArrayBuffer(0);
+    }
+  }
+
+  async function loadEmbedded({ coreJsText, wasmBytes }) {
+    assertSupported();
+    return new FFmpegRunner(String(coreJsText), await toArrayBuffer(wasmBytes));
+  }
+
+  const videoCompressorArgs = (options = {}) => {
+    const args = ["--input", options.input || "/input.bin", "--output", options.output || "/output.mp4"];
+    const add = (name, value) => { if (value !== undefined && value !== null && value !== "") args.push(name, String(value)); };
+    add("--max-width", options.maxWidth ?? 0);
+    add("--max-height", options.maxHeight ?? 0);
+    add("--fps", options.fps ?? 0);
+    add("--crf", options.crf ?? 28);
+    if (options.videoBitrateKbps) add("--video-bitrate", options.videoBitrateKbps);
+    add("--preset", options.preset || "veryfast");
+    add("--audio-bitrate", options.audioBitrateKbps ?? 128);
+    if (options.noAudio) args.push("--no-audio");
+    if (options.allowUpscale) args.push("--allow-upscale");
+    if (options.faststart === false) args.push("--no-faststart");
+    return args;
+  };
+
+  const losslessVideoCutterArgs = (options = {}) => {
+    const args = ["--input", options.input || "/workerfs/input.mp4", "--output", options.output || "/output.mp4"];
+    const add = (name, value) => { if (value !== undefined && value !== null && value !== "") args.push(name, String(value)); };
+    add("--start", options.start ?? 0);
+    if (options.end !== undefined && options.end !== null && options.end !== "") add("--end", options.end);
+    if (options.noAudio) args.push("--no-audio");
+    return args;
+  };
+
+  const mediaInspectorArgs = (options = {}) => [
+    "--input", options.input || "/workerfs/input.bin",
+    "--output", options.output || "/report.json"
+  ];
+
+  const videoContactSheetArgs = (options = {}) => {
+    const count = Number(options.count ?? 12);
+    const thumbSize = Number(options.thumbSize ?? 320);
+    if (![12, 24, 48].includes(count)) throw new RangeError("Video Contact Sheet count must be 12, 24, or 48.");
+    if (!Number.isInteger(thumbSize) || thumbSize < 96 || thumbSize > 640) throw new RangeError("Video Contact Sheet thumbSize must be an integer from 96 to 640.");
+    const args = [
+      "--input", options.input || "/workerfs/input.mp4",
+      "--output", options.output || "/contact-sheet.ppm",
+      "--count", String(count),
+      "--thumb-size", String(thumbSize)
+    ];
+    if (options.columns !== undefined && options.columns !== null && options.columns !== "") {
+      const columns = Number(options.columns);
+      if (!Number.isInteger(columns) || columns < 1 || columns > Math.min(16, count)) throw new RangeError("Video Contact Sheet columns are out of range.");
+      args.push("--columns", String(columns));
+    }
+    if (options.metadataOutput) {
+      args.push("--metadata-output", String(options.metadataOutput));
+    }
+    return args;
+  };
+
+  const decodePpmOutput = (result, name = "/contact-sheet.ppm") => {
+    const file = result?.files?.find((item) => item.name === name);
+    if (!file) throw new Error("PPM output was not returned: " + name);
+    const bytes = file.data;
+    let offset = 0;
+    const isSpace = (value) => value === 9 || value === 10 || value === 13 || value === 32;
+    const skip = () => {
+      while (offset < bytes.length) {
+        while (offset < bytes.length && isSpace(bytes[offset])) offset++;
+        if (bytes[offset] !== 35) break;
+        while (offset < bytes.length && bytes[offset] !== 10 && bytes[offset] !== 13) offset++;
+      }
+    };
+    const token = () => {
+      skip();
+      const start = offset;
+      while (offset < bytes.length && !isSpace(bytes[offset]) && bytes[offset] !== 35) offset++;
+      if (start === offset) throw new Error("Invalid PPM header.");
+      return new TextDecoder("ascii").decode(bytes.subarray(start, offset));
+    };
+
+    const magic = token();
+    const width = Number(token());
+    const height = Number(token());
+    const maxValue = Number(token());
+    if (magic !== "P6" || !Number.isInteger(width) || width <= 0 || !Number.isInteger(height) || height <= 0 || maxValue !== 255) {
+      throw new Error("Unsupported PPM output header.");
+    }
+    if (offset >= bytes.length || !isSpace(bytes[offset])) throw new Error("Invalid PPM pixel-data boundary.");
+    offset++;
+    if (bytes[offset - 1] === 13 && bytes[offset] === 10) offset++;
+    const expected = width * height * 3;
+    if (!Number.isSafeInteger(expected) || bytes.length - offset !== expected) {
+      throw new Error(`PPM pixel data size mismatch: expected ${expected}, got ${bytes.length - offset}.`);
+    }
+    return { width, height, pixels: bytes.subarray(offset) };
+  };
+
+  const decodeJsonOutput = (result, name = "/report.json") => {
+    const file = result?.files?.find((item) => item.name === name);
+    if (!file) throw new Error("JSON output was not returned: " + name);
+    return JSON.parse(new TextDecoder().decode(file.data));
+  };
+
+  window.BrowserFFmpeg = Object.freeze({
+    loadEmbedded,
+    videoCompressorArgs,
+    losslessVideoCutterArgs,
+    mediaInspectorArgs,
+    videoContactSheetArgs,
+    decodePpmOutput,
+    decodeJsonOutput,
+    isSupported
+  });
+})();
+
+</script>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const I18N={ja:{tagline:'動画全体を、一枚で見渡す。',introTitle:'動画の流れを、一枚の画像に。',introText:'動画全体から均等にフレームを取り出して、確認しやすいコンタクトシートを作ります。',local:'完全ローカル処理',chooseVideo:'動画を選ぶ',chooseHint:'ファイルは外部へ送信されません。',dropTitle:'動画をここにドロップ',dropSub:'またはボタンから動画ファイルを選択',selectFile:'動画を選択',pickCount:'フレーム数を選ぶ',pickHint:'動画全体から均等に取得します。',sheetsSuffix:'枚',count12:'まず全体を見る',count24:'標準',count48:'細かく確認',showTimes:'各コマに時刻を表示',generateTitle:'コンタクトシートを生成',generateHint:'長時間動画は必要な地点へ移動しながら処理します。',generate:'コンタクトシートを生成',engineHint:'FFmpeg WebAssembly / 再エンコード・アップロードなし',preparing:'準備しています…',details:'処理ログ',resultTitle:'生成結果',resultEmptySub:'生成するとここにプレビューが表示されます。',emptyTitle:'まだ生成されていません',emptySub:'動画を選んで、12 / 24 / 48枚から選択してください。',regenerate:'再生成',saveImage:'画像を保存',outputFilename:'保存ファイル名',outputFilenameHint:'PNG / JPEGに合わせて拡張子を自動調整します。',regenerateConfirmTitle:'同じ設定でもう一度生成しますか？',regenerateConfirmText:'動画とフレーム数が前回の生成時から変わっていません。同じ処理をもう一度実行します。',cancel:'キャンセル',generateAgain:'もう一度生成',helpTitle:'使い方と注意事項',howTitle:'使い方',how1:'動画を選択またはドロップします。',how2:'12枚・24枚・48枚から確認したい細かさを選びます。',how3:'「コンタクトシートを生成」を押します。',how4:'プレビューを確認し、PNGまたはJPEGで保存します。',privacyTitle:'プライバシー',privacyText:'動画はブラウザー内だけで処理されます。ネットワーク通信はCSPで禁止しており、動画がサーバーへアップロードされることはありません。',supportTitle:'対応形式',supportText:'MP4/MOV、MKV/WebM、AVI、MPEG-TSなど。H.264、HEVC/H.265（Pixelのhvc1/Main10を含む）、VP8/VP9、AV1、MPEG-4、MJPEG、ProRes等をFFmpeg WASMでデコードします。',notesTitle:'注意事項',note1:'48枚は12枚より処理時間とメモリ使用量が増えます。',note2:'動画によってはキーフレーム位置の影響で、指定時刻の直近フレームが使われます。',note3:'DRM保護された動画や、今回のWASMに含まれないコーデックは処理できません。',note4:'HDR動画はContact Sheet用のRGB画像へ変換されるため、元動画と色の見え方が異なる場合があります。',zoomReadySub:'画像をタップして拡大し、細部まで確認できます。',zoomOpen:'拡大して確認',zoomTitle:'プレビューを拡大',zoomFit:'全体表示',zoomPreparing:'プレビューを準備中…',zoomHelp:'ピンチまたはホイールで拡大・縮小。ドラッグで移動。ダブルタップ / ダブルクリックで100%表示を切り替えます。',close:'閉じる',mobileVideo:'動画',mobileFrames:'枚数',mobileGenerate:'生成',mobileSave:'保存'},en:{tagline:'See the whole video at a glance.',introTitle:'Turn a video into one visual overview.',introText:'Sample evenly across the full video and create an easy-to-scan contact sheet.',local:'Fully local processing',chooseVideo:'Choose a video',chooseHint:'Your file never leaves this device.',dropTitle:'Drop a video here',dropSub:'or choose a video file',selectFile:'Choose video',pickCount:'Choose frame count',pickHint:'Frames are sampled evenly across the full video.',sheetsSuffix:'',count12:'Quick overview',count24:'Standard',count48:'Detailed review',showTimes:'Show time on each frame',generateTitle:'Generate contact sheet',generateHint:'Long videos are processed by seeking to the required points.',generate:'Generate contact sheet',engineHint:'FFmpeg WebAssembly / no re-encoding or upload',preparing:'Preparing…',details:'Processing log',resultTitle:'Result',resultEmptySub:'Your contact sheet preview will appear here.',emptyTitle:'Nothing generated yet',emptySub:'Choose a video, then select 12 / 24 / 48 frames.',regenerate:'Regenerate',saveImage:'Save image',outputFilename:'Save filename',outputFilenameHint:'The extension is adjusted automatically for PNG / JPEG.',regenerateConfirmTitle:'Generate again with the same settings?',regenerateConfirmText:'The video and frame count have not changed since the last successful generation. This will run the same processing again.',cancel:'Cancel',generateAgain:'Generate again',helpTitle:'How to use & notes',howTitle:'How to use',how1:'Choose or drop a video.',how2:'Choose 12, 24, or 48 frames.',how3:'Press “Generate contact sheet”.',how4:'Review the preview and save as PNG or JPEG.',privacyTitle:'Privacy',privacyText:'The video is processed entirely in your browser. Network access is blocked by CSP, so the video is never uploaded to a server.',supportTitle:'Supported formats',supportText:'MP4/MOV, MKV/WebM, AVI, MPEG-TS and more. FFmpeg WASM decodes H.264, HEVC/H.265 (including Pixel hvc1/Main10), VP8/VP9, AV1, MPEG-4, MJPEG, ProRes and more.',notesTitle:'Notes',note1:'48 frames uses more processing time and memory than 12.',note2:'Depending on keyframe placement, the nearest decodable frame may be used around each target time.',note3:'DRM-protected video and codecs not included in this WASM build cannot be processed.',note4:'HDR video is converted to RGB for the contact sheet, so colors may look different from the original video.',zoomReadySub:'Tap the image to zoom in and inspect details before saving.',zoomOpen:'Zoom preview',zoomTitle:'Zoom preview',zoomFit:'Fit',zoomPreparing:'Preparing preview…',zoomHelp:'Pinch or use the mouse wheel to zoom. Drag to pan. Double-tap / double-click to toggle 100% view.',close:'Close',mobileVideo:'Video',mobileFrames:'Frames',mobileGenerate:'Generate',mobileSave:'Save'}};
+const state={file:null,count:12,lastGenerationSignature:null,lang:(navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en',busy:false,runner:null,ppm:null,meta:null,format:'png',generated:false,sourceThumbnailUrl:null,sourceDuration:NaN};
+const els={file:$('file'),drop:$('drop'),fileCard:$('fileCard'),fileVisual:$('fileVisual'),fileThumb:$('fileThumb'),fileName:$('fileName'),fileMeta:$('fileMeta'),generate:$('generateBtn'),mobileVideo:$('mobileVideo'),mobileFrames:$('mobileFrames'),mobileGenerate:$('mobileGenerate'),mobileSave:$('mobileSave'),progressWrap:$('progressWrap'),progressBar:$('progressBar'),progressPct:$('progressPct'),progressStatus:$('progressStatus'),error:$('error'),details:$('details'),log:$('log'),canvas:$('canvas'),canvasWrap:$('canvasWrap'),emptyResult:$('emptyResult'),resultActions:$('resultActions'),resultStats:$('resultStats'),resultSub:$('resultSub'),outputFilename:$('outputFilename'),regenerateDialog:$('regenerateDialog'),regenerateCancel:$('regenerateCancel'),regenerateConfirm:$('regenerateConfirm'),canvasShell:$('canvasShell'),zoomViewer:$('zoomViewer'),zoomViewport:$('zoomViewport'),zoomImage:$('zoomImage'),zoomLoading:$('zoomLoading'),zoomFit:$('zoomFit'),zoom100:$('zoom100'),zoomScale:$('zoomScale'),zoomClose:$('zoomClose')};
+function t(k){return I18N[state.lang][k]||k}function applyLang(){document.documentElement.lang=state.lang;document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(I18N[state.lang][k]!=null)el.textContent=I18N[state.lang][k]});$('langBtn').textContent=state.lang==='ja'?'EN':'JA';if(els.canvasShell)els.canvasShell.setAttribute('aria-label',t('zoomOpen'));if(els.zoomClose)els.zoomClose.setAttribute('aria-label',t('close'))}
+function bytes(n){if(!Number.isFinite(n))return '—';const u=['B','KB','MB','GB'];let i=0,v=n;while(v>=1024&&i<u.length-1){v/=1024;i++}return `${v.toFixed(i?1:0)} ${u[i]}`}
+function safeBase(name){const dot=name.lastIndexOf('.');return (dot>0?name.slice(0,dot):name).replace(/[\\/:*?"<>|]+/g,'_').trim()||'video'}
+function outputExt(){return state.format==='jpeg'?'jpg':'png'}
+function defaultOutputFilename(){return state.file?`${safeBase(state.file.name)}_contact-sheet_${state.count}.${outputExt()}`:`contact-sheet.${outputExt()}`}
+function normalizeOutputFilename(value){let name=String(value||'').trim().replace(/[\\/:*?"<>|]+/g,'_');const ext='.'+outputExt();if(!name)name=defaultOutputFilename();if(name.toLowerCase().endsWith(ext))return name;name=name.replace(/\.[a-z0-9]{1,8}$/i,'').replace(/[. ]+$/,'').trim();return `${name||'contact-sheet'}${ext}`}
+function syncOutputFilename(forceDefault=false){if(!els.outputFilename)return;els.outputFilename.value=forceDefault?defaultOutputFilename():normalizeOutputFilename(els.outputFilename.value)}
+function generationSignature(){if(!state.file)return null;return [state.file.name,state.file.size,state.file.lastModified,state.count].join('|')}
+function closeRegenerateDialog(){els.regenerateDialog.classList.add('hidden')}
+function requestGenerate(){if(!state.file||state.busy)return;const signature=generationSignature();if(state.generated&&signature&&state.lastGenerationSignature===signature){els.regenerateDialog.classList.remove('hidden');return}generate()}
+
+let sourceThumbnailToken=0;
+function revokeSourceThumbnail(){sourceThumbnailToken++;if(state.sourceThumbnailUrl){URL.revokeObjectURL(state.sourceThumbnailUrl);state.sourceThumbnailUrl=null}state.sourceDuration=NaN;els.fileThumb.removeAttribute('src');els.fileThumb.classList.add('hidden');els.fileVisual.classList.remove('has-thumbnail','is-loading')}
+function sourceFileMeta(file,duration=NaN){const parts=[bytes(file.size),file.type||'video'];if(Number.isFinite(duration)&&duration>0)parts.push(formatTime(duration));return parts.join(' · ')}
+function waitMedia(video,event,timeout=3500){return new Promise((resolve,reject)=>{let timer=0,done=false;const clean=()=>{clearTimeout(timer);video.removeEventListener(event,ok);video.removeEventListener('error',fail)};const finish=(pass,value)=>{if(done)return;done=true;clean();pass?resolve(value):reject(value instanceof Error?value:new Error('media preview unavailable'))};const ok=e=>finish(true,e),fail=()=>finish(false,new Error('media preview unavailable'));video.addEventListener(event,ok,{once:true});video.addEventListener('error',fail,{once:true});timer=setTimeout(()=>finish(false,new Error('media preview timeout')),timeout)})}
+function canvasJpegBlob(canvas){return new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.78))}
+async function createSourceThumbnail(file){const token=++sourceThumbnailToken;els.fileVisual.classList.add('is-loading');const video=document.createElement('video'),objectUrl=URL.createObjectURL(file);video.muted=true;video.playsInline=true;video.preload='auto';try{video.src=objectUrl;video.load();await waitMedia(video,'loadedmetadata',3200);if(token!==sourceThumbnailToken||state.file!==file)return;const duration=Number(video.duration);state.sourceDuration=Number.isFinite(duration)&&duration>0?duration:NaN;els.fileMeta.textContent=sourceFileMeta(file,state.sourceDuration);try{if(video.readyState<2)await waitMedia(video,'loadeddata',2600)}catch{}if(!video.videoWidth||!video.videoHeight)throw new Error('video frame unavailable');const target=Number.isFinite(duration)&&duration>.3?Math.min(5,Math.max(.2,duration*.08)):0;if(target>.05&&Math.abs((Number(video.currentTime)||0)-target)>.04){const seek=waitMedia(video,'seeked',2500);video.currentTime=Math.min(target,Math.max(0,duration-.05));await seek}if(typeof video.requestVideoFrameCallback==='function')await Promise.race([new Promise(resolve=>video.requestVideoFrameCallback(()=>resolve())),new Promise(resolve=>setTimeout(resolve,450))]);else await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));if(token!==sourceThumbnailToken||state.file!==file)return;const maxWidth=280,scale=Math.min(1,maxWidth/video.videoWidth),canvas=document.createElement('canvas');canvas.width=Math.max(2,Math.round(video.videoWidth*scale));canvas.height=Math.max(2,Math.round(video.videoHeight*scale));const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('canvas unavailable');ctx.drawImage(video,0,0,canvas.width,canvas.height);const blob=await canvasJpegBlob(canvas);if(!blob||token!==sourceThumbnailToken||state.file!==file)return;state.sourceThumbnailUrl=URL.createObjectURL(blob);els.fileThumb.src=state.sourceThumbnailUrl;els.fileThumb.classList.remove('hidden');els.fileVisual.classList.add('has-thumbnail')}catch{}finally{URL.revokeObjectURL(objectUrl);video.removeAttribute('src');video.load();if(token===sourceThumbnailToken)els.fileVisual.classList.remove('is-loading')}}
+function setFile(file){if(!file)return;revokeSourceThumbnail();state.file=file;state.generated=false;state.lastGenerationSignature=null;state.meta=null;state.ppm=null;els.fileName.textContent=file.name;els.fileMeta.textContent=sourceFileMeta(file);els.fileCard.classList.remove('hidden');els.drop.classList.add('hidden');resetResult();updateActions();createSourceThumbnail(file)}
+function clearFile(){revokeSourceThumbnail();state.file=null;state.lastGenerationSignature=null;els.file.value='';els.fileCard.classList.add('hidden');els.drop.classList.remove('hidden');resetResult();updateActions()}
+function resetResult(){state.generated=false;els.canvasWrap.classList.add('hidden');els.resultActions.classList.add('hidden');els.resultStats.classList.add('hidden');els.emptyResult.classList.remove('hidden');els.resultSub.textContent=t('resultEmptySub');updateActions()}
+function updateActions(){const canGenerate=!!state.file&&!state.busy;els.generate.disabled=!canGenerate;els.mobileGenerate.disabled=!canGenerate;els.mobileSave.disabled=!state.generated||state.busy;els.mobileGenerate.classList.toggle('primary',!state.generated);els.mobileSave.classList.toggle('primary',state.generated)}
+function setBusy(on){state.busy=on;updateActions();document.querySelectorAll('.count,#selectBtn,#clearBtn').forEach(x=>x.disabled=on);if(on){els.progressWrap.classList.remove('hidden');els.error.classList.add('hidden');els.details.classList.add('hidden');els.log.textContent='';setProgress(0,t('preparing'))}}
+function setProgress(v,label){const pct=Math.round(Math.max(0,Math.min(1,v))*100);els.progressBar.style.width=pct+'%';els.progressPct.textContent=pct+'%';if(label)els.progressStatus.textContent=label;else els.progressStatus.textContent=state.lang==='ja'?`フレームを取得しています… ${pct}%`:`Sampling frames… ${pct}%`}
+function showError(err){els.error.textContent=(state.lang==='ja'?'生成できませんでした: ':'Could not generate: ')+(err?.message||String(err));els.error.classList.remove('hidden');els.details.classList.remove('hidden')}
+async function prepareRunner(){if(state.runner)return state.runner;setProgress(.01,state.lang==='ja'?'FFmpeg WASMを準備しています…':'Loading FFmpeg WASM…');const [text,wasm]=await Promise.all([window.StandaloneAssets.text('ffmpeg-wasm-builder','core-js'),window.StandaloneAssets.bytes('ffmpeg-wasm-builder','core-wasm')]);state.runner=await BrowserFFmpeg.loadEmbedded({coreJsText:text,wasmBytes:wasm});return state.runner}
+function ppmToCanvas(ppm,meta){const c=els.canvas;c.width=ppm.width;c.height=ppm.height;const ctx=c.getContext('2d',{alpha:false});const img=ctx.createImageData(ppm.width,ppm.height),dst=img.data,src=ppm.pixels;for(let s=0,d=0;s<src.length;s+=3,d+=4){dst[d]=src[s];dst[d+1]=src[s+1];dst[d+2]=src[s+2];dst[d+3]=255}ctx.putImageData(img,0,0);if($('timestamps').checked&&meta?.samples){const cw=meta.cellWidth,ch=meta.cellHeight,cols=meta.columns;const scale=Math.max(1,Math.min(cw,ch)/180);const fs=Math.max(10,Math.round(13*scale));ctx.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;ctx.textBaseline='bottom';for(const s of meta.samples){const col=s.index%cols,row=Math.floor(s.index/cols),label=formatTime(s.actualSeconds);const x=col*cw+5*scale,y=(row+1)*ch-4*scale;const m=ctx.measureText(label),padX=5*scale,padY=3*scale;ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(x-padX/2,y-fs-padY,m.width+padX,fs+padY*1.3);ctx.fillStyle='#fff';ctx.fillText(label,x,y)}}}
+function formatTime(sec){sec=Math.max(0,Number(sec)||0);const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=Math.floor(sec%60);return h?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+function defaultThumbSize(){return state.count===48?220:state.count===24?280:320}
+async function generate(){if(!state.file||state.busy)return;setBusy(true);state.generated=false;try{const runner=await prepareRunner();setProgress(.03,state.lang==='ja'?'動画を解析しています…':'Analyzing video…');const ppmPath='/contact-sheet.ppm',jsonPath='/contact-sheet.json';const result=await runner.run({files:[{name:'/workerfs/input.bin',data:state.file,workerfs:true}],outputs:[ppmPath,jsonPath],args:BrowserFFmpeg.videoContactSheetArgs({input:'/workerfs/input.bin',output:ppmPath,metadataOutput:jsonPath,count:state.count,thumbSize:defaultThumbSize()}),onLog:({stream,message})=>{els.log.textContent+=`[${stream}] ${message}\n`},onProgress:v=>setProgress(.03+v*.95)});state.ppm=BrowserFFmpeg.decodePpmOutput(result,ppmPath);state.meta=BrowserFFmpeg.decodeJsonOutput(result,jsonPath);ppmToCanvas(state.ppm,state.meta);state.generated=true;state.lastGenerationSignature=generationSignature();syncOutputFilename(true);setProgress(1,state.lang==='ja'?'完成しました':'Done');els.emptyResult.classList.add('hidden');els.canvasWrap.classList.remove('hidden');els.resultActions.classList.remove('hidden');els.resultStats.classList.remove('hidden');els.resultStats.innerHTML=`<span class="pill">${state.meta.count} ${state.lang==='ja'?'枚':'frames'}</span><span class="pill">${formatTime(state.meta.durationSeconds)}</span><span class="pill">${escapeHtml(state.meta.codec)}</span><span class="pill">${state.meta.sheetWidth}×${state.meta.sheetHeight}</span>`;els.resultSub.textContent=t('zoomReadySub');updateActions();setTimeout(()=>$('resultPanel').scrollIntoView({behavior:'smooth',block:'start'}),80)}catch(err){showError(err)}finally{state.busy=false;updateActions();document.querySelectorAll('.count,#selectBtn,#clearBtn').forEach(x=>x.disabled=false)}}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function redraw(){if(state.ppm&&state.meta)ppmToCanvas(state.ppm,state.meta)}
+function save(){if(!state.generated)return;const mime=state.format==='jpeg'?'image/jpeg':'image/png',quality=state.format==='jpeg'?.92:undefined;syncOutputFilename(false);els.canvas.toBlob(blob=>{if(!blob)return;const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=els.outputFilename.value;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)},mime,quality)}
+
+const zoomState={url:null,scale:1,fitScale:1,panX:0,panY:0,pointers:new Map(),pinch:null,drag:null,lastTapAt:0,lastTapX:0,lastTapY:0};
+function revokeZoomUrl(){if(zoomState.url){URL.revokeObjectURL(zoomState.url);zoomState.url=null}}
+function zoomBounds(){const min=Math.max(.01,zoomState.fitScale),max=Math.max(4,min*8);return{min,max}}
+function renderZoom(){if(!els.zoomImage)return;els.zoomImage.style.transform=`translate(-50%,-50%) translate(${zoomState.panX}px,${zoomState.panY}px) scale(${zoomState.scale})`;els.zoomScale.textContent=`${Math.round(zoomState.scale*100)}%`}
+function fitZoom(){if(els.zoomViewer.classList.contains('hidden')||!els.canvas.width||!els.canvas.height)return;const rect=els.zoomViewport.getBoundingClientRect(),pad=24;zoomState.fitScale=Math.min(Math.max(.01,(rect.width-pad)/els.canvas.width),Math.max(.01,(rect.height-pad)/els.canvas.height),1);zoomState.scale=zoomState.fitScale;zoomState.panX=0;zoomState.panY=0;renderZoom()}
+function setZoomAt(nextScale,clientX,clientY){const rect=els.zoomViewport.getBoundingClientRect(),bounds=zoomBounds(),scale=Math.max(bounds.min,Math.min(bounds.max,nextScale)),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;const imageX=(clientX-(cx+zoomState.panX))/zoomState.scale,imageY=(clientY-(cy+zoomState.panY))/zoomState.scale;zoomState.panX=clientX-cx-imageX*scale;zoomState.panY=clientY-cy-imageY*scale;zoomState.scale=scale;renderZoom()}
+function setZoom100(){zoomState.scale=1;zoomState.panX=0;zoomState.panY=0;renderZoom()}
+function toggleZoom100(clientX,clientY){const target=Math.abs(zoomState.scale-1)<.04?zoomState.fitScale:1;setZoomAt(target,clientX,clientY)}
+function canvasBlob(){return new Promise(resolve=>els.canvas.toBlob(resolve,'image/png'))}
+async function openZoom(){if(!state.generated||!els.canvas.width)return;els.zoomViewer.classList.remove('hidden');document.body.classList.add('zoom-open');els.zoomLoading.classList.remove('hidden');els.zoomImage.classList.add('hidden');revokeZoomUrl();try{const blob=await canvasBlob();if(!blob)throw new Error('Preview image could not be created.');zoomState.url=URL.createObjectURL(blob);await new Promise((resolve,reject)=>{els.zoomImage.onload=resolve;els.zoomImage.onerror=reject;els.zoomImage.src=zoomState.url});els.zoomImage.classList.remove('hidden');els.zoomLoading.classList.add('hidden');requestAnimationFrame(fitZoom)}catch{els.zoomLoading.textContent=state.lang==='ja'?'プレビューを開けませんでした。':'Could not open preview.'}}
+function closeZoom(){if(els.zoomViewer.classList.contains('hidden'))return;els.zoomViewer.classList.add('hidden');document.body.classList.remove('zoom-open');zoomState.pointers.clear();zoomState.pinch=null;zoomState.drag=null;els.zoomViewport.classList.remove('is-dragging');els.zoomImage.removeAttribute('src');els.zoomImage.classList.add('hidden');els.zoomLoading.classList.remove('hidden');els.zoomLoading.textContent=t('zoomPreparing');revokeZoomUrl()}
+function pointerCenter(points){const items=[...points.values()];if(items.length<2)return null;return{x:(items[0].x+items[1].x)/2,y:(items[0].y+items[1].y)/2,dist:Math.hypot(items[0].x-items[1].x,items[0].y-items[1].y)}}
+function beginRemainingDrag(){const item=[...zoomState.pointers.entries()][0];if(!item){zoomState.drag=null;return}zoomState.drag={id:item[0],x:item[1].x,y:item[1].y,panX:zoomState.panX,panY:zoomState.panY,moved:false}}
+els.zoomViewport.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();try{els.zoomViewport.setPointerCapture?.(e.pointerId)}catch{}zoomState.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(zoomState.pointers.size===1){zoomState.drag={id:e.pointerId,x:e.clientX,y:e.clientY,panX:zoomState.panX,panY:zoomState.panY,moved:false};els.zoomViewport.classList.add('is-dragging')}else if(zoomState.pointers.size===2){const c=pointerCenter(zoomState.pointers),rect=els.zoomViewport.getBoundingClientRect(),vcx=rect.left+rect.width/2,vcy=rect.top+rect.height/2;zoomState.pinch={dist:Math.max(1,c.dist),scale:zoomState.scale,imageX:(c.x-(vcx+zoomState.panX))/zoomState.scale,imageY:(c.y-(vcy+zoomState.panY))/zoomState.scale};zoomState.drag=null}});
+els.zoomViewport.addEventListener('pointermove',e=>{if(!zoomState.pointers.has(e.pointerId))return;e.preventDefault();zoomState.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(zoomState.pointers.size>=2&&zoomState.pinch){const c=pointerCenter(zoomState.pointers),rect=els.zoomViewport.getBoundingClientRect(),bounds=zoomBounds(),scale=Math.max(bounds.min,Math.min(bounds.max,zoomState.pinch.scale*(c.dist/zoomState.pinch.dist))),vcx=rect.left+rect.width/2,vcy=rect.top+rect.height/2;zoomState.scale=scale;zoomState.panX=c.x-vcx-zoomState.pinch.imageX*scale;zoomState.panY=c.y-vcy-zoomState.pinch.imageY*scale;renderZoom();return}if(zoomState.drag&&zoomState.drag.id===e.pointerId){const dx=e.clientX-zoomState.drag.x,dy=e.clientY-zoomState.drag.y;if(Math.abs(dx)+Math.abs(dy)>5)zoomState.drag.moved=true;if(zoomState.scale>zoomState.fitScale+.001){zoomState.panX=zoomState.drag.panX+dx;zoomState.panY=zoomState.drag.panY+dy;renderZoom()}}});
+function endZoomPointer(e){const dragWasTap=zoomState.pointers.size===1&&zoomState.drag&&zoomState.drag.id===e.pointerId&&!zoomState.drag.moved,now=performance.now();zoomState.pointers.delete(e.pointerId);if(zoomState.pointers.size<2)zoomState.pinch=null;if(zoomState.pointers.size===1)beginRemainingDrag();else if(!zoomState.pointers.size){els.zoomViewport.classList.remove('is-dragging');zoomState.drag=null}if(dragWasTap&&e.pointerType==='touch'){const near=Math.hypot(e.clientX-zoomState.lastTapX,e.clientY-zoomState.lastTapY)<28;if(now-zoomState.lastTapAt<340&&near){zoomState.lastTapAt=0;toggleZoom100(e.clientX,e.clientY)}else{zoomState.lastTapAt=now;zoomState.lastTapX=e.clientX;zoomState.lastTapY=e.clientY}}}
+els.zoomViewport.addEventListener('pointerup',endZoomPointer);els.zoomViewport.addEventListener('pointercancel',endZoomPointer);
+els.zoomViewport.addEventListener('wheel',e=>{e.preventDefault();const factor=Math.exp(-e.deltaY*.0015);setZoomAt(zoomState.scale*factor,e.clientX,e.clientY)},{passive:false});
+els.zoomViewport.addEventListener('dblclick',e=>{e.preventDefault();toggleZoom100(e.clientX,e.clientY)});
+els.zoomFit.onclick=fitZoom;els.zoom100.onclick=setZoom100;els.zoomClose.onclick=closeZoom;
+els.canvasShell.addEventListener('click',openZoom);els.canvasShell.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openZoom()}});
+window.addEventListener('resize',()=>{if(!els.zoomViewer.classList.contains('hidden'))fitZoom()});
+
+$('selectBtn').onclick=()=>els.file.click();els.drop.onclick=e=>{if(e.target.closest('button'))return;els.file.click()};els.drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();els.file.click()}};els.file.onchange=()=>setFile(els.file.files[0]);['dragenter','dragover'].forEach(n=>els.drop.addEventListener(n,e=>{e.preventDefault();els.drop.classList.add('drag')}));['dragleave','drop'].forEach(n=>els.drop.addEventListener(n,e=>{e.preventDefault();els.drop.classList.remove('drag')}));els.drop.addEventListener('drop',e=>{const f=[...e.dataTransfer.files].find(x=>x.type.startsWith('video/')||/\.(mp4|mov|m4v|mkv|webm|avi|ts|mts|m2ts)$/i.test(x.name));if(f)setFile(f)});$('clearBtn').onclick=clearFile;
+$('countGrid').onclick=e=>{const b=e.target.closest('.count');if(!b||state.busy)return;state.count=Number(b.dataset.count);document.querySelectorAll('.count').forEach(x=>x.classList.toggle('active',x===b));if(state.generated)resetResult()};$('timestamps').onchange=redraw;els.generate.onclick=requestGenerate;$('regenerateBtn').onclick=requestGenerate;$('saveBtn').onclick=save;els.mobileGenerate.onclick=requestGenerate;els.mobileSave.onclick=save;els.outputFilename.addEventListener('change',()=>syncOutputFilename(false));els.outputFilename.addEventListener('blur',()=>syncOutputFilename(false));els.regenerateCancel.onclick=closeRegenerateDialog;els.regenerateConfirm.onclick=()=>{closeRegenerateDialog();generate()};els.regenerateDialog.onclick=e=>{if(e.target===els.regenerateDialog)closeRegenerateDialog()};for(const b of [els.mobileVideo,els.mobileFrames])b.onclick=()=>{const target=$(b.dataset.mobileTarget);if(target)target.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})};document.querySelectorAll('[data-format]').forEach(b=>b.onclick=()=>{state.format=b.dataset.format;document.querySelectorAll('[data-format]').forEach(x=>x.classList.toggle('active',x===b));if(state.generated)syncOutputFilename(false)});
+if('IntersectionObserver' in window){const navObserver=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!visible)return;const key=visible.target.id==='sourcePanel'?'video':visible.target.id==='countPanel'?'frames':null;if(!key)return;for(const b of [els.mobileVideo,els.mobileFrames]){const active=b.dataset.mobileKey===key;b.classList.toggle('is-active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}},{rootMargin:'-30% 0px -55% 0px',threshold:[0,.01,.25,.5]});navObserver.observe($('sourcePanel'));navObserver.observe($('countPanel'))}
+$('langBtn').onclick=()=>{state.lang=state.lang==='ja'?'en':'ja';applyLang();if(state.meta){els.resultStats.innerHTML=`<span class="pill">${state.meta.count} ${state.lang==='ja'?'枚':'frames'}</span><span class="pill">${formatTime(state.meta.durationSeconds)}</span><span class="pill">${escapeHtml(state.meta.codec)}</span><span class="pill">${state.meta.sheetWidth}×${state.meta.sheetHeight}</span>`}};const openHelp=()=>$('helpDialog').classList.remove('hidden'),closeHelp=()=>$('helpDialog').classList.add('hidden');$('helpBtn').onclick=openHelp;$('helpClose').onclick=closeHelp;$('helpDialog').onclick=e=>{if(e.target===$('helpDialog'))closeHelp()};document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHelp();closeRegenerateDialog();closeZoom()}});
+window.addEventListener('beforeunload',revokeSourceThumbnail);if(!BrowserFFmpeg.isSupported()){els.error.textContent=state.lang==='ja'?'このブラウザーは必要なWebAssembly/Worker機能に対応していません。':'This browser lacks the required WebAssembly/Worker features.';els.error.classList.remove('hidden')}applyLang();updateActions();
+})();
+</script>
+</body></html>
