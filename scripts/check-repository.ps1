@@ -52,7 +52,7 @@ foreach ($byte in [System.IO.File]::ReadAllBytes($selfExtractBuilderPath)) {
 
 $app = Get-Content -Raw -Encoding UTF8 (Join-Path $Root "app.config.json") | ConvertFrom-Json
 if ([string]$app.name -ne "Video Contact Sheet") { throw "app.config.json: unexpected app name" }
-if ([string]$app.version -ne "1.0.0") { throw "app.config.json: v1.0.0 is required" }
+if ([string]$app.version -notmatch '^\d+\.\d+\.\d+$') { throw "app.config.json: version must use SemVer format (for example 1.0.1)" }
 if ([string]$app.repository.name -ne "htmlapps-video-contact-sheet") { throw "app.config.json: repository name mismatch" }
 if ([string]$app.build.output -ne "dist/index.html") { throw "app.config.json: build.output must be dist/index.html" }
 if (-not ([bool]$app.build.selfExtract.enabled)) { throw "Self-extract output must be enabled" }
