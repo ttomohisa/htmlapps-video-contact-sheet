@@ -12,3 +12,13 @@ The generated standalone HTML includes a profile-specific FFmpeg WebAssembly cor
 The exact Release archive checksum, corresponding-source URL, and source checksum are recorded in `dist/dependency-manifest.json` at build time.
 
 The application source in this repository is MIT licensed.
+
+## Big Buck Bunny screenshot media
+
+`assets/screenshot.png` demonstrates the app with frames from **Big Buck Bunny**.
+
+- Copyright: © 2008 Blender Foundation / www.bigbuckbunny.org
+- License: Creative Commons Attribution 3.0
+- Project: https://peach.blender.org/
+
+The movie/project license permits reuse with attribution.

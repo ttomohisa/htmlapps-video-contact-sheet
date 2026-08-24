@@ -32,14 +32,14 @@ The app records a signature of the last successful generation using source file 
 
 ## Mobile UX
 
-At phone widths the fixed bottom bar contains exactly four actions:
+At phone widths the fixed bottom bar contains exactly four page tabs:
 
 - Video
 - Frames
 - Generate
-- Save
+- Result
 
-Save is disabled until generation succeeds. Generate is disabled until a video is selected.
+Tapping a tab switches the visible page itself; it does not scroll to a section on one long page. Generate remains a normal button inside the Generate page, while saving remains inside the Result page.
 
 ## Privacy and network boundary
 

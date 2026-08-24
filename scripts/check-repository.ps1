@@ -91,10 +91,14 @@ if ($templateText -notmatch "addEventListener\('wheel'") { throw "Zoom viewer mu
 if ($templateText -notmatch "pointerdown") { throw "Zoom viewer must support pointer gestures for touch panning/pinch" }
 if ($templateText -notmatch 'function generationSignature\(\)') { throw "Generation settings must have an explicit signature" }
 if ($templateText -notmatch 'function requestGenerate\(\)') { throw "Generate actions must route through the unchanged-settings confirmation guard" }
-if ($templateText -notmatch 'id="appMobileBottomBar"') { throw "Mobile layout must include the fixed bottom action bar" }
-if ($templateText -notmatch 'id="mobileGenerate"[^>]*disabled') { throw "Mobile Generate must start disabled until a video is selected" }
-if ($templateText -notmatch 'id="mobileSave"[^>]*disabled') { throw "Mobile Save must start disabled until generation succeeds" }
-if ($templateText -notmatch 'grid-template-columns:repeat\(var\(--app-mobile-bottom-items,4\),minmax\(0,1fr\)\)') { throw "Mobile bottom bar must reserve four actions" }
+if ($templateText -notmatch 'id="appMobileBottomBar"') { throw "Mobile layout must include the fixed bottom page tabs" }
+if ($templateText -notmatch 'id="mobileVideo"[^>]*data-mobile-key="video"') { throw "Mobile Video page tab is required" }
+if ($templateText -notmatch 'id="mobileFrames"[^>]*data-mobile-key="frames"') { throw "Mobile Frames page tab is required" }
+if ($templateText -notmatch 'id="mobileGenerate"[^>]*data-mobile-key="generate"') { throw "Mobile Generate page tab is required" }
+if ($templateText -notmatch 'id="mobileResult"[^>]*data-mobile-key="result"') { throw "Mobile Result page tab is required" }
+if ($templateText -notmatch 'function setMobilePage\(key\)') { throw "Mobile tabs must switch page state instead of scrolling to sections" }
+if ($templateText -notmatch 'body\[data-mobile-page="video"\]') { throw "Mobile page visibility must be driven by data-mobile-page" }
+if ($templateText -notmatch 'grid-template-columns:repeat\(var\(--app-mobile-bottom-items,4\),minmax\(0,1fr\)\)') { throw "Mobile bottom bar must reserve four page tabs" }
 if ($templateText -match 'state\.file\.arrayBuffer\s*\(') { throw "Template must not copy the full selected input with file.arrayBuffer()" }
 if ($templateText -match '__CORE_JS_GZIP_BASE64__|__CORE_WASM_GZIP_BASE64__') { throw "Legacy direct gzip placeholders must not remain" }
 if ($templateText -notmatch '__EMBEDDED_ASSET_BUNDLE_JSON__') { throw "Template must use the reference repository asset-bundle build contract" }

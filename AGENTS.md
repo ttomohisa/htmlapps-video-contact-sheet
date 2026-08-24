@@ -7,7 +7,7 @@ This repository contains Video Contact Sheet, a Browser Kitty single-HTML app.
 ## Non-negotiable constraints
 
 - Keep v1.0.0 unless the user asks to bump it.
-- Keep the smartphone fixed bottom action bar.
+- Keep the smartphone fixed bottom page tabs (Video / Frames / Generate / Result) and page-switching behavior.
 - Keep runtime network access blocked.
 - Do not vendor FFmpeg JS/WASM into the source tree.
 - Resolve the pinned FFmpeg WASM Builder Release through `dependencies.json`.
