@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added local timestamp CSV export from the current generated result, including frame/row/column positions and actual decoded times.
+- Fixed image downloads borrowing a later filename or extension when PNG/JPEG encoding completes asynchronously.
+
 ## 1.0.1
 
 - Refined the Browser Kitty app icon and synchronized the header icon, embedded favicon, and `assets/favicon.svg`.

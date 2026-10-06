@@ -126,4 +126,20 @@ if ([string]$resolved[0].archiveSha256 -notmatch '^[0-9a-f]{64}$') { throw "Gene
 if ([string]$resolved[0].sourceSha256 -notmatch '^[0-9a-f]{64}$') { throw "Generated manifest must record the corresponding-source SHA-256" }
 if ([string]::IsNullOrWhiteSpace([string]$resolved[0].correspondingSourceUrl)) { throw "Generated manifest must record the corresponding-source URL" }
 
+$node = Get-Command node -ErrorAction SilentlyContinue
+if ($node) {
+  $previousHtml = $env:CONTACT_SHEET_HTML
+  try {
+    foreach ($target in @("src\index.template.html", "dist\index.html", "video-contact-sheet.html", "dist\index.self-extract.html")) {
+      $env:CONTACT_SHEET_HTML = Join-Path $Root $target
+      & $node.Source --test (Join-Path $Root "tests\export.test.cjs")
+      if ($LASTEXITCODE -ne 0) { throw "Export regression tests failed for $target" }
+    }
+  } finally {
+    $env:CONTACT_SHEET_HTML = $previousHtml
+  }
+} else {
+  Write-Warning "Node.js is not installed; export regression tests were not run. The standalone build does not require Node.js."
+}
+
 Write-Host "[OK] Repository check passed." -ForegroundColor Green

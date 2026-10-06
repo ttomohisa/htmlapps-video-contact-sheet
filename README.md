@@ -32,6 +32,7 @@ No installation or account is required. It is useful for quickly reviewing movie
 - Full-screen result viewer with pinch / wheel zoom and drag panning
 - **Fit / 100%** controls and double-tap / double-click zoom toggle
 - Save as PNG or JPEG
+- Export the generated sheet’s frame positions and actual decoded times as a local CSV
 - Editable output filename with automatic extension normalization
 - Runtime network access blocked with `connect-src 'none'`
 - Japanese / English UI
@@ -45,6 +46,7 @@ No installation or account is required. It is useful for quickly reviewing movie
 5. Press **Generate contact sheet**.
 6. Review the result. Tap or click the image to open the zoom viewer.
 7. Edit the filename or switch PNG / JPEG if needed, then press **Save image**.
+8. Optionally press **Save timestamps (CSV)** to download a review index for the current result.
 
 ### Frame count
 
@@ -86,6 +88,14 @@ movie_contact-sheet_24.png
 ```
 
 You can edit it before saving. Switching between PNG and JPEG preserves the basename and normalizes only the extension.
+
+## Timestamp CSV
+
+**Save timestamps (CSV)** exports the last successfully generated sheet’s metadata with stable columns: `frame,row,column,actual_seconds,timestamp`. Frame, row, and column are 1-based sheet positions; rows retain the stored sample order. `actual_seconds` preserves the returned decoded time, while `timestamp` uses the same whole-second label as the image (not frame-accurate timecode), even with the overlay off.
+
+Pending video, frame-count, or timestamp changes do not affect the CSV until successful regeneration. The CSV filename uses the displayed output basename plus `_timestamps.csv`; no source filename or user text is included in its cells. Missing or invalid metadata produces an inline error without a partial CSV. CSV export is local and does not decode frames or modify the image.
+
+Each image save also retains the name and PNG/JPEG format chosen when Save was pressed, even if you edit the filename or switch format while encoding finishes.
 
 ## Fully offline use
 

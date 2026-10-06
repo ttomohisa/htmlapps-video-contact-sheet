@@ -26,6 +26,12 @@ After generation, the result canvas can be opened in a full-screen inspection vi
 
 After generation, the save filename is editable beside the format and save controls. Switching PNG/JPEG normalizes the extension without discarding the user-entered basename.
 
+## Timestamp CSV export
+
+A secondary local CSV action exports only the current successful result’s stored sample metadata. Columns are `frame,row,column,actual_seconds,timestamp`; positions are 1-based and stored sample order is preserved. Decoded seconds are not recalculated. Timestamp strings reuse the image label formatter regardless of overlay setting. CSV uses UTF-8 with CRLF rows and conventional escaping. No source or user-entered text is included in cells.
+
+The filename is a sanitized displayed output basename with its terminal image extension removed and `_timestamps.csv` appended; blank/all-dot names use `contact-sheet`. Export is disabled without a generated result and complete finite metadata; invalid metadata shows a localized error in Result. Pending settings do not affect export until successful regeneration. No runner calls, Canvas changes, network, clipboard, storage, or dependencies are added. Each image save captures its normalized filename before asynchronous encoding.
+
 ## Unchanged regeneration guard
 
 The app records a signature of the last successful generation using source file identity (name, size, lastModified) plus the selected frame count. If Generate/Regenerate is invoked again with the same signature and the previous result is still current, a confirmation dialog is shown before repeating the expensive operation.
