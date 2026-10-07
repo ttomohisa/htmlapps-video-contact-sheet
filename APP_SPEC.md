@@ -4,6 +4,14 @@
 
 Create a single local image that summarizes a video by sampling evenly across its full duration.
 
+## Header and Help acceptance
+
+- In Japanese, the language button displays `EN` and its accessible name and tooltip are `英語に切り替え`; in English, it displays `JA` with `Switch to Japanese`.
+- Help open/close accessible names and tooltips follow the current language, including after repeated language switches while Help is open.
+- Header and Help versions derive from `app.config.json` and display the complete `vX.Y.Z` value at every width, including narrow phones.
+- Help remains dismissible with its close button, the backdrop, and Escape. Existing layout, privacy wording, mobile page tabs, and video/export behavior remain unchanged.
+- Language switches preserve the current progress phase and percentage, and show the ready-result subtitle while a result exists, including when settings have pending changes. They never restart generation, clear results, change output filenames/metadata, or hide generation errors.
+
 ## Core behavior
 
 - User selects a video File/Blob.
