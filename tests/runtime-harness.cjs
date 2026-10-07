@@ -7,7 +7,7 @@ let html = fs.readFileSync(htmlPath, 'utf8');
 const payload = html.match(/<script\s+id="self-extract-payload"\s+type="application\/octet-stream">([A-Za-z0-9+/=\r\n]+)<\/script>/);
 if (payload) html = require('node:zlib').gunzipSync(Buffer.from(payload[1].replace(/\s/g, ''), 'base64')).toString('utf8');
 const nativeCanvas = process.env.CONTACT_SHEET_REAL_CANVAS === '1' ? require('@napi-rs/canvas') : null;
-function fixture({ language = 'en', mobile = false } = {}) {
+function fixture({ language = 'en', mobile = false, appVersion } = {}) {
   const nodes = [], ids = new Map(), timers = [], encodes = [], downloads = [], revoked = [], urls = new Map(), runs = [];
   function element(tag, attrs = {}) {
     const listeners = new Map(), classes = new Set((attrs.class || '').split(/\s+/).filter(Boolean));
@@ -30,9 +30,10 @@ function fixture({ language = 'en', mobile = false } = {}) {
     }
     nodes.push(node); if (attrs.id) ids.set(attrs.id, node); return node;
   }
-  for (const m of html.matchAll(/<(\w+)\b([^>]*)>/g)) { const a = {}; for (const x of m[2].matchAll(/([\w-]+)(?:="([^"]*)")?/g)) a[x[1]] = x[2] ?? ''; element(m[1], a); }
+  for (const m of html.matchAll(/<(\w+)\b([^>]*)>([^<]*)/g)) { const a = {}; for (const x of m[2].matchAll(/([\w-]+)(?:="([^"]*)")?/g)) a[x[1]] = x[2] ?? ''; element(m[1], a).textContent = m[3]; }
   function queryAll(selector) { return selector.split(',').flatMap(s => { if (s.startsWith('#')) return ids.has(s.slice(1)) ? [ids.get(s.slice(1))] : []; if (s.startsWith('.')) return nodes.filter(n => n.classList.contains(s.slice(1))); const d = s.match(/^\[([^\]=]+)(?:="([^"]*)")?\]$/); if (d) return nodes.filter(n => d[1] in n.attrs && (d[2] == null || n.attrs[d[1]] === d[2])); return []; }); }
-  const document = { body: element('body'), documentElement: {}, getElementById: id => ids.get(id), querySelectorAll: queryAll, createElement: tag => element(tag), addEventListener() {} };
+  const documentListeners = new Map();
+  const document = { body: element('body'), documentElement: {}, getElementById: id => ids.get(id), querySelectorAll: queryAll, createElement: tag => element(tag), addEventListener(k, fn) { if (!documentListeners.has(k)) documentListeners.set(k, []); documentListeners.get(k).push(fn); }, async emit(k, e) { for (const fn of documentListeners.get(k) || []) await fn(e); } };
   const get = id => { assert.ok(ids.has(id), `Expected #${id} in HTML`); return ids.get(id); };
   let nextResult;
   const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray,
@@ -46,7 +47,11 @@ function fixture({ language = 'en', mobile = false } = {}) {
   let script = scripts.at(-1)[1];
   // Expose the real application closure only inside this test VM; product has no test hooks.
   script = script.replace(/\}\)\(\);\s*$/, 'globalThis.api={state,save,generate,resetResult,updateActions,formatTime,ppmToCanvas,applyLang};\n})();');
-  vm.createContext(context); vm.runInContext(script, context, { filename: htmlPath });
+  vm.createContext(context);
+  let bootstrap = scripts[0][1].replace('__APP_CONFIG_JSON__', JSON.stringify(require('../app.config.json'))).replace('__BUILD_MANIFEST_JSON__', '{}').replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{}');
+  if (appVersion) bootstrap = bootstrap.replace(/const APP_CONFIG=(.*);/, (_, json) => `const APP_CONFIG=${JSON.stringify({ ...JSON.parse(json), version: appVersion })};`);
+  vm.runInContext(bootstrap, context, { filename: htmlPath });
+  vm.runInContext(script, context, { filename: htmlPath });
   const api = context.api;
   api.state.runner = { async run(opts) { runs.push(opts); if (nextResult instanceof Error) throw nextResult; return nextResult; } };
   const metadata = (count = 12) => ({ count, columns: count === 48 ? 8 : count === 24 ? 6 : 4, cellWidth: 12, cellHeight: 10, durationSeconds: 9000, codec: 'synthetic', sheetWidth: 48, sheetHeight: 30, samples: Array.from({ length: count }, (_, index) => ({ index, actualSeconds: index * 3600.125 + .125 })) });

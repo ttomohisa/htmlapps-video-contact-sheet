@@ -5,6 +5,13 @@
 - Added local timestamp CSV export from the current generated result, including frame/row/column positions and actual decoded times.
 - Fixed image downloads borrowing a later filename or extension when PNG/JPEG encoding completes asynchronously.
 
+## 1.0.2
+
+- Kept the current progress phase and generated-result subtitle correctly localized across language changes without changing results or progress.
+- Kept the language toggle labels as EN / JA and localized their target-language accessible names and tooltips.
+- Localized Help open/close accessible names and tooltips in Japanese and English.
+- Derived the header and Help versions from the canonical app configuration and kept the full v-prefixed version visible on narrow screens.
+
 ## 1.0.1
 
 - Refined the Browser Kitty app icon and synchronized the header icon, embedded favicon, and `assets/favicon.svg`.
