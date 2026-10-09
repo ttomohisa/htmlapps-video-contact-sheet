@@ -3,7 +3,7 @@
   "name": "Video Contact Sheet",
   "nameJa": "Video Contact Sheet",
   "slug": "video-contact-sheet",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Create a single contact sheet image from evenly sampled video frames, entirely in the browser.",
   "descriptionJa": "動画全体から均等にフレームを取得し、一枚のコンタクトシート画像をブラウザ内だけで作成します。",
   "defaultLanguage": "auto",

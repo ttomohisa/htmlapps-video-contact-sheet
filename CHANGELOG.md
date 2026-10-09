@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 - 2026-10-09
+
+- Add a real English catalog screenshot and use it in the English README, preserving app behavior and the supplied icon.
+
 ## 1.0.3 - 2026-10-09
 
 - Refresh the app icon and favicon with the supplied SVG artwork, preserving the original viewBox and standalone/offline behavior.
