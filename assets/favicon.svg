@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 <defs><g id="p"><rect width="12.3" height="9.2" rx=".5"/><circle cx="3.15" cy="2.8" r="1.1" fill="#fcfcfc"/><path d="M1.3 6.9l2.8-1.8L5.4 6l2.95-2.85L11 5.6v2.2H1.3z" fill="#fcfcfc"/></g></defs>
-<rect x="2.35" y="2.51" width="59.3" height="59.05" rx="14.825" fill="#126551"/>
+<rect x="2.35" y="2.51" width="59.3" height="59.05" rx="14.825" ry="14.7625" fill="#16624f"/>
 <g fill="#fcfcfc">
 <rect x="20.45" y="9.72" width="23.15" height="15.07" rx="1.45"/>
 <path d="M30.62 24.7h2.78v2.15h2.2L32 30.67l-3.6-3.82h2.22z"/>
 <rect x="10.3" y="29.79" width="43.4" height="24.32" rx="1.25"/>
 </g>
-<g fill="#126551">
+<g fill="#16624f">
 <rect x="25.15" y="11.52" width="13.74" height="11.42" rx=".45"/>
 <g id="h"><rect x="21.94" y="11.53" width="2.05" height="2.04" rx=".2"/><rect x="21.94" y="14.8" width="2.05" height="2.04" rx=".2"/><rect x="21.94" y="18.03" width="2.05" height="2.04" rx=".2"/><rect x="21.94" y="21.24" width="2.05" height="2.04" rx=".2"/></g>
 <use href="#h" transform="translate(18.1)"/><path d="M29.55 14.55v4.82l4.4-2.41z" fill="#fcfcfc"/>
