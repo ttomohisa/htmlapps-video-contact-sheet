@@ -67,3 +67,25 @@ for (const appVersion of [undefined, '9.8.7']) test(`header and Help render full
   assert.equal(badge.textContent, expected);
   assert.equal(helpVersion.textContent, `Video Contact Sheet ${expected}`);
 });
+
+// Keep the supplied artwork, favicon, and header in sync across shipped representations.
+test('app icon preserves the supplied SVG and canonical header/favicon artwork', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const crypto = require('node:crypto');
+  const icon = fs.readFileSync(path.join(__dirname, '../assets/favicon.svg'));
+  assert.equal(crypto.createHash('sha256').update(icon).digest('hex'), '7002e583994d9db9f7e97d797411e7030097bc135d29be51097e85e9e03ba197');
+  const html = require('./runtime-harness.cjs').html;
+  const favicon = html.match(/<link\b[^>]*rel="icon"[^>]*href="([^"]+)"/)[1];
+  const expectedUri = 'data:image/svg+xml;base64,' + icon.toString('base64');
+  assert.equal(favicon, expectedUri);
+  const header = html.match(/<div class="mark"[^>]*>\s*(<svg[\s\S]*?<\/svg>)/)[1];
+  // HTML gives inline SVG its namespace; omit the standalone xmlns declaration.
+  assert.equal(header, icon.toString('utf8').trim().replace(' xmlns="http://www.w3.org/2000/svg"', ''));
+  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+  assert.equal(new Set(ids).size, ids.length, 'Inline SVG IDs must not collide with page IDs');
+  for (const match of header.matchAll(/href="#([^"]+)"/g)) {
+    assert.ok(ids.includes(match[1]), `Missing inline SVG reference: ${match[1]}`);
+  }
+  assert.match(html, /\.mark svg\{width:100%;height:100%\}/);
+});

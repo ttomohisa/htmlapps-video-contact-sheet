@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 - 2026-10-09
+
+- Refresh the app icon and favicon with the supplied SVG artwork, preserving the original viewBox and standalone/offline behavior.
+- Add icon consistency coverage for the canonical asset, header, and favicon.
+
 ## Unreleased
 
 - Added local timestamp CSV export from the current generated result, including frame/row/column positions and actual decoded times.
