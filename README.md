@@ -8,7 +8,7 @@
 
 Video Contact Sheet is a privacy-focused single-HTML app that samples **12 / 24 / 48 frames** evenly across a video and combines them into one contact sheet image. The selected video is processed locally in the browser and is not uploaded to a server.
 
-![Video Contact Sheet screenshot](assets/screenshot.png)
+![Video Contact Sheet in English with a generated 12-frame sheet from a synthetic video](assets/screenshot-en.png)
 
 ## Demo
 
