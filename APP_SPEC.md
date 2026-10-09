@@ -66,3 +66,7 @@ The source repository does not vendor FFmpeg JS/WASM. `dependencies.json` points
 ## Standalone size
 
 The pinned FFmpeg JavaScript and WebAssembly assets are embedded from the Builder Release in gzip form and expanded locally with the browser Compression Streams API only when the engine is first needed. This keeps the normal standalone HTML substantially smaller without changing output quality or network/privacy behavior.
+
+## Brand icon consistency
+
+- Brand backgrounds use #16624f with corner radii equal to exactly 25% of each background axis. Preserve foreground artwork, placement, and existing canvas padding across SVG assets, app headers, and embedded favicons.
