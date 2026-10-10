@@ -132,7 +132,7 @@ if ($node) {
   try {
     foreach ($target in @("src\index.template.html", "dist\index.html", "video-contact-sheet.html", "dist\index.self-extract.html")) {
       $env:CONTACT_SHEET_HTML = Join-Path $Root $target
-      & $node.Source --test (Join-Path $Root "tests\export.test.cjs") (Join-Path $Root "tests\header.test.cjs") (Join-Path $Root "tests\status-language.test.cjs")
+      & $node.Source --test (Join-Path $Root "tests\export.test.cjs") (Join-Path $Root "tests\header.test.cjs") (Join-Path $Root "tests\status-language.test.cjs") (Join-Path $Root "tests\dialog-lifecycle.test.cjs")
       if ($LASTEXITCODE -ne 0) { throw "Runtime regression tests failed for $target" }
     }
   } finally {

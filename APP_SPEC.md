@@ -70,3 +70,7 @@ The pinned FFmpeg JavaScript and WebAssembly assets are embedded from the Builde
 ## Brand icon consistency
 
 - Brand backgrounds use #16624f with corner radii equal to exactly 25% of each background axis. Preserve foreground artwork, placement, and existing canvas padding across SVG assets, app headers, and embedded favicons.
+
+## Modal accessibility and responsive audit
+
+Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the background inert, locks document scrolling, traps forward/reverse Tab, and restores the correct opener. Regeneration navigation focuses the destination page. The header wraps without hiding the version. The local-processing badge uses a decorative shield without changing the privacy claim. See `docs/LAYOUT_AUDIT.md` for coverage and environment limits.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.6 - 2026-10-10
+
+- Keep Help, regeneration, and zoom overlays in control of keyboard focus and page scrolling; restore focus on dismissal and page transitions.
+- Wrap the narrow header without overlapping the language control or hiding the full version.
+- Use the shared decorative shield before the local-processing badge.
+- Add regression coverage and document desktop, narrow, and short-viewport validation.
+
 ## 1.0.5 - 2026-10-09
 
 - Normalize brand icon backgrounds to #16624f with exact 25% corner radii across SVG assets, header icons, and embedded favicons, preserving existing artwork.

@@ -11,13 +11,18 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
   const nodes = [], ids = new Map(), timers = [], encodes = [], downloads = [], revoked = [], urls = new Map(), runs = [];
   function element(tag, attrs = {}) {
     const listeners = new Map(), classes = new Set((attrs.class || '').split(/\s+/).filter(Boolean));
-    const node = { tagName: tag.toUpperCase(), attrs, dataset: {}, style: {}, value: '', textContent: '', checked: 'checked' in attrs, disabled: 'disabled' in attrs,
+    const node = { tagName: tag.toUpperCase(), attrs, dataset: {}, style: {}, value: '', textContent: '', checked: 'checked' in attrs, disabled: 'disabled' in attrs, children: [], parentElement: null, inert: 'inert' in attrs, isConnected: true,
       classList: { add(...cs) { cs.forEach(c => classes.add(c)); }, remove(...cs) { cs.forEach(c => classes.delete(c)); }, contains: c => classes.has(c), toggle(c, on) { if (on ?? !classes.has(c)) classes.add(c); else classes.delete(c); } },
       setAttribute(k, v) { attrs[k] = String(v); }, removeAttribute(k) { delete attrs[k]; }, getAttribute(k) { return attrs[k] ?? null; },
       addEventListener(k, fn) { if (!listeners.has(k)) listeners.set(k, []); listeners.get(k).push(fn); }, removeEventListener() {},
       async emit(k, extra = {}) { const e = { target: this, preventDefault() {}, ...extra }; if (typeof this['on' + k] === 'function') await this['on' + k](e); for (const fn of listeners.get(k) || []) await fn(e); },
       click() { if (tag === 'a') downloads.push({ filename: this.download, blob: urls.get(this.href), url: this.href }); else if (!this.disabled) return this.emit('click'); },
-      scrollIntoView() {}, getBoundingClientRect() { return { left: 0, top: 0, width: 500, height: 500 }; }
+      scrollIntoView() {}, getBoundingClientRect() { return { left: 0, top: 0, width: 500, height: 500 }; },
+      contains(other) { for (let n = other; n; n = n.parentElement) if (n === this) return true; return false; },
+      closest(selector) { for (let n = this; n; n = n.parentElement) if (matches(n, selector)) return n; return null; },
+      querySelectorAll(selector) { return nodes.filter(n => n !== this && this.contains(n) && matches(n, selector)); },
+      getClientRects() { return this.closest('.hidden') ? [] : [this.getBoundingClientRect()]; },
+      focus() { if (!this.disabled && !this.closest('[inert],.hidden')) document.activeElement = this; }
     };
     for (const [key, value] of Object.entries(attrs)) if (key.startsWith('data-')) node.dataset[key.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
     if (tag === 'canvas') {
@@ -30,10 +35,18 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
     }
     nodes.push(node); if (attrs.id) ids.set(attrs.id, node); return node;
   }
-  for (const m of html.matchAll(/<(\w+)\b([^>]*)>([^<]*)/g)) { const a = {}; for (const x of m[2].matchAll(/([\w-]+)(?:="([^"]*)")?/g)) a[x[1]] = x[2] ?? ''; element(m[1], a).textContent = m[3]; }
-  function queryAll(selector) { return selector.split(',').flatMap(s => { if (s.startsWith('#')) return ids.has(s.slice(1)) ? [ids.get(s.slice(1))] : []; if (s.startsWith('.')) return nodes.filter(n => n.classList.contains(s.slice(1))); const d = s.match(/^\[([^\]=]+)(?:="([^"]*)")?\]$/); if (d) return nodes.filter(n => d[1] in n.attrs && (d[2] == null || n.attrs[d[1]] === d[2])); return []; }); }
+  const stack = [], voidTags = new Set(['AREA','BASE','BR','COL','EMBED','HR','IMG','INPUT','LINK','META','PARAM','SOURCE','TRACK','WBR']);
+  for (const m of html.slice(0, html.indexOf('<script')).matchAll(/<(\/?)(\w+)\b([^>]*)>([^<]*)/g)) {
+    if (m[1]) { const i = stack.findLastIndex(n => n.tagName === m[2].toUpperCase()); if (i >= 0) stack.length = i; continue; }
+    const attrs = {}; for (const x of m[3].matchAll(/([\w-]+)(?:="([^"]*)")?/g)) attrs[x[1]] = x[2] ?? '';
+    const node = element(m[2], attrs); node.textContent = m[4]; node.parentElement = stack.at(-1) || null; node.parentElement?.children.push(node);
+    if (!voidTags.has(node.tagName) && !m[3].trimEnd().endsWith('/')) stack.push(node);
+  }
+  function matches(node, selector) { return selector.split(',').some(raw => { const s = raw.trim(); if (s.startsWith('#')) return node.attrs.id === s.slice(1); if (s.startsWith('.')) return node.classList.contains(s.slice(1)); if (s === '[inert]') return node.inert; const d = s.match(/^\[([^\]=]+)(?:="([^"]*)")?\]$/); return d ? d[1] in node.attrs && (d[2] == null || node.attrs[d[1]] === d[2]) : node.tagName.toLowerCase() === s; }); }
+  function queryAll(selector) { return nodes.filter(n => matches(n, selector)); }
   const documentListeners = new Map();
-  const document = { body: element('body'), documentElement: {}, getElementById: id => ids.get(id), querySelectorAll: queryAll, createElement: tag => element(tag), addEventListener(k, fn) { if (!documentListeners.has(k)) documentListeners.set(k, []); documentListeners.get(k).push(fn); }, async emit(k, e) { for (const fn of documentListeners.get(k) || []) await fn(e); } };
+  const document = { body: nodes.find(n => n.tagName === 'BODY'), documentElement: nodes.find(n => n.tagName === 'HTML'), getElementById: id => ids.get(id), querySelectorAll: queryAll, createElement: tag => element(tag), addEventListener(k, fn) { if (!documentListeners.has(k)) documentListeners.set(k, []); documentListeners.get(k).push(fn); }, async emit(k, extra) { const e = {preventDefault() {}, ...extra}; for (const fn of documentListeners.get(k) || []) await fn(e); } };
+  document.activeElement = document.body;
   const get = id => { assert.ok(ids.has(id), `Expected #${id} in HTML`); return ids.get(id); };
   let nextResult;
   const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray,
