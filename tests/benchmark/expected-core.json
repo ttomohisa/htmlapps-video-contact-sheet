@@ -1,0 +1,14 @@
+{
+  "builderCommit": "d88553dc610a82e285db125e31f1655d324cec6c",
+  "officialBaseline": {
+    "repository": "ttomohisa/htmlapps-ffmpeg-wasm-builder",
+    "workflowRunId": "38107231716",
+    "artifactId": "11689618675",
+    "artifactSha256": "13c7e4b7b096b015106bacff0b51a754ac71e804c9a172cc3e4b9e372361ce30",
+    "ciMergeCommit": "1d70d6b249bd048065f667a6d3b2c5febb6f0808"
+  },
+  "files": {
+    "ffmpeg.js": { "bytes": 68493, "sha256": "0b0e79dffbdfbdc449a4b5c74a60092c5b9dd75e8257e153b5840ce6f4856c42" },
+    "ffmpeg.wasm": { "bytes": 2467841, "sha256": "d30ee16310c4957e62b458984b4e8c3b63019800117b980ee9444a08341ef129" }
+  }
+}

@@ -74,3 +74,11 @@ The pinned FFmpeg JavaScript and WebAssembly assets are embedded from the Builde
 ## Modal accessibility and responsive audit
 
 Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the background inert, locks document scrolling, traps forward/reverse Tab, and restores the correct opener. Regeneration navigation focuses the destination page. The header wraps without hiding the version. The local-processing badge uses a decorative shield without changing the privacy claim. See `docs/LAYOUT_AUDIT.md` for coverage and environment limits.
+
+## Bounded parallel extraction
+
+- At most two independent single-thread WASM Workers may participate in one generation. No SharedArrayBuffer or isolation headers are required.
+- Automatic two-Worker mode requires at least 4 reported logical processors and 8 GiB reported device memory; lower or unknown capacity uses one Worker.
+- Two partitions use alternating global sample indexes without changing requested count, geometry, seek times, or actual timestamps. Only owned rectangles are merged, and each global sample must appear exactly once.
+- Parallel errors or incompatible output terminate all parallel Workers before one single-Worker retry. No retry loop is allowed.
+- Internal benchmark controls report chosen/final Worker count and stage timings. Allocated WASM memory is labeled separately from browser peak memory. The UI, app version, filenames, regeneration guard, mobile tabs, and runtime network block remain unchanged.

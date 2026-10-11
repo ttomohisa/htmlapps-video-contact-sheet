@@ -1,0 +1,24 @@
+<section id="benchmark-panel" aria-labelledby="bench-title">
+  <h2 id="bench-title">Contact Sheet Worker Benchmark · CI candidate / test-only</h2>
+  <p id="bench-identity"></p>
+  <p>This separate verification harness uses a verified CI core, not a production dependency release. Use only synthetic test videos. No network request is made during processing.</p>
+  <div class="bench-controls">
+    <label>Synthetic video <input id="bench-file" type="file" accept="video/*"></label>
+    <label>Workers <select id="bench-mode"><option value="auto">Auto (capacity-based)</option><option value="1">1 Worker</option><option value="2">2 Workers</option></select></label>
+    <label>Frames <select id="bench-count"><option>12</option><option>24</option><option>48</option></select></label>
+    <label>Comparison repetitions <select id="bench-repeat"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+    <button id="bench-run" type="button">Run selected mode</button>
+    <button id="bench-compare" type="button">Compare 1 vs 2 Workers</button>
+    <button id="bench-reload" type="button">Reload for cold asset load</button>
+    <button id="bench-download" type="button" disabled>Download all measurements (JSON)</button>
+  </div>
+  <p id="bench-status" role="status" aria-live="polite">Select a synthetic video. Comparisons alternate mode order and check pixel, metadata and PNG hashes.</p>
+  <p>Warm runs reuse decoded JS/WASM assets; every extraction still creates fresh Workers and WASM instances. Allocated WASM is measured linear memory, not whole-browser peak. Total excludes hashing and PNG encoding. Save measurements before reloading.</p>
+  <img id="bench-image" alt="Most recent benchmark contact sheet">
+  <div id="bench-results"></div>
+</section>
+<style>
+body>.header,body>.main,body>#appMobileBottomBar{display:none!important}body.has-mobile-bottom-bar{padding-bottom:0!important}
+
+#benchmark-panel{margin:16px auto;padding:20px;max-width:1100px;background:#fff8df;border:3px solid #946000;border-radius:12px;color:#201800;overflow-wrap:anywhere}#benchmark-panel h2{margin-top:0}#benchmark-panel p{font-size:13px}.bench-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.bench-controls label{display:grid;gap:4px;font-weight:650;font-size:13px}#benchmark-panel button,#benchmark-panel select,#benchmark-panel input{padding:9px;border:1px solid #946000;border-radius:5px;background:white;min-height:40px}#bench-status{font-weight:750}#bench-image{display:block;max-width:100%;max-height:520px;margin:12px auto}#bench-results article{white-space:pre-wrap;border-top:1px solid #baa878;padding:12px 0;font:12px/1.65 ui-monospace,monospace}#bench-results article button{margin:8px 8px 0 0}
+</style>

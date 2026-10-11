@@ -8,7 +8,7 @@ const payload = html.match(/<script\s+id="self-extract-payload"\s+type="applicat
 if (payload) html = require('node:zlib').gunzipSync(Buffer.from(payload[1].replace(/\s/g, ''), 'base64')).toString('utf8');
 const nativeCanvas = process.env.CONTACT_SHEET_REAL_CANVAS === '1' ? require('@napi-rs/canvas') : null;
 function fixture({ language = 'en', mobile = false, appVersion } = {}) {
-  const nodes = [], ids = new Map(), timers = [], encodes = [], downloads = [], revoked = [], urls = new Map(), runs = [];
+  const nodes = [], ids = new Map(), timers = [], encodes = [], downloads = [], revoked = [], urls = new Map(), runs = [], extractions = [];
   function element(tag, attrs = {}) {
     const listeners = new Map(), classes = new Set((attrs.class || '').split(/\s+/).filter(Boolean));
     const node = { tagName: tag.toUpperCase(), attrs, dataset: {}, style: {}, value: '', textContent: '', checked: 'checked' in attrs, disabled: 'disabled' in attrs, children: [], parentElement: null, inert: 'inert' in attrs, isConnected: true,
@@ -49,11 +49,15 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
   document.activeElement = document.body;
   const get = id => { assert.ok(ids.has(id), `Expected #${id} in HTML`); return ids.get(id); };
   let nextResult;
-  const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray,
+  const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray, performance, AbortController,
     URL: { createObjectURL(blob) { const url = `blob:synthetic-${urls.size + 1}`; urls.set(url, blob); return url; }, revokeObjectURL(url) { revoked.push(url); } },
     setTimeout(fn, delay) { timers.push({ fn, delay }); return timers.length; }, clearTimeout() {}, requestAnimationFrame() {},
     matchMedia: q => ({ matches: q.includes('max-width') ? mobile : q.includes('min-width') ? !mobile : false }), addEventListener() {}, scrollTo() {},
-    BrowserFFmpeg: { isSupported: () => true, videoContactSheetArgs: opts => opts, decodePpmOutput: result => result.ppm, decodeJsonOutput: result => result.meta }
+    BrowserFFmpeg: { async extractContactSheet(runner, opts) {
+      extractions.push(opts);
+      const result = await runner.run({ files: [{ name: '/workerfs/input.bin', data: opts.file, workerfs: true }], args: opts, onProgress: opts.onProgress, onLog: opts.onLog });
+      return { ...result, metrics: { requestedWorkers: opts.workerCount || 1, workersUsed: opts.workerCount || 1, fallbackReason: null, extractionMs: 1, mergeMs: 0, wasmMemoryBytes: null, attempts: [] } };
+    }, isSupported: () => true, videoContactSheetArgs: opts => opts, decodePpmOutput: result => result.ppm, decodeJsonOutput: result => result.meta }
   };
   context.window = context;
   const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
@@ -70,6 +74,6 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
   const metadata = (count = 12) => ({ count, columns: count === 48 ? 8 : count === 24 ? 6 : 4, cellWidth: 12, cellHeight: 10, durationSeconds: 9000, codec: 'synthetic', sheetWidth: 48, sheetHeight: 30, samples: Array.from({ length: count }, (_, index) => ({ index, actualSeconds: index * 3600.125 + .125 })) });
   async function result(meta = metadata()) { api.state.file = { name: 'synthetic.mp4', size: 10, lastModified: 1 }; api.state.count = meta.count; nextResult = { meta, ppm: { width: 48, height: 30, pixels: new Uint8ClampedArray(48 * 30 * 3).fill(120) } }; await api.generate(); }
   function complete(i = 0, nullBlob = false) { const x = encodes[i]; x.callback(nullBlob ? null : new Blob([x.bytes], { type: x.mime })); }
-  return { api, get, nodes, context, result, metadata, runs, encodes, downloads, revoked, timers, complete, html, failNext() { nextResult = new Error('synthetic failure'); }, format: value => nodes.find(n => n.dataset.format === value).click() };
+  return { api, get, nodes, context, result, metadata, runs, extractions, encodes, downloads, revoked, timers, complete, html, failNext() { nextResult = new Error('synthetic failure'); }, format: value => nodes.find(n => n.dataset.format === value).click() };
 }
 module.exports = { fixture, html };
