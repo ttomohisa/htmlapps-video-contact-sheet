@@ -61,7 +61,7 @@ $dependencies = Get-Content -Raw -Encoding UTF8 (Join-Path $Root "dependencies.j
 $ffmpegDependency = @($dependencies.dependencies | Where-Object { [string]$_.id -eq "ffmpeg-wasm-builder" })
 if ($ffmpegDependency.Count -ne 1) { throw "dependencies.json must contain exactly one ffmpeg-wasm-builder dependency" }
 if ([string]$ffmpegDependency[0].source -ne "github-release") { throw "ffmpeg-wasm-builder must use source=github-release" }
-if ([string]$ffmpegDependency[0].version -ne "1.3.0") { throw "Video Contact Sheet must pin FFmpeg WASM Builder v1.3.0" }
+if ([string]$ffmpegDependency[0].version -ne "1.10.4") { throw "Video Contact Sheet must pin FFmpeg WASM Builder v1.10.4" }
 if ([string]$ffmpegDependency[0].releaseAsset -notmatch 'video-contact-sheet') { throw "releaseAsset must use the video-contact-sheet profile" }
 if ([string]$ffmpegDependency[0].releaseAsset -notmatch '\{version\}') { throw "releaseAsset must derive from the single version field" }
 if ([string]$ffmpegDependency[0].sourceAsset -notmatch '\{version\}') { throw "sourceAsset must derive from the single version field" }
@@ -132,7 +132,7 @@ if ($node) {
   try {
     foreach ($target in @("src\index.template.html", "dist\index.html", "video-contact-sheet.html", "dist\index.self-extract.html")) {
       $env:CONTACT_SHEET_HTML = Join-Path $Root $target
-      & $node.Source --test (Join-Path $Root "tests\export.test.cjs") (Join-Path $Root "tests\header.test.cjs") (Join-Path $Root "tests\status-language.test.cjs") (Join-Path $Root "tests\dialog-lifecycle.test.cjs")
+      & $node.Source --test (Join-Path $Root "tests\export.test.cjs") (Join-Path $Root "tests\header.test.cjs") (Join-Path $Root "tests\status-language.test.cjs") (Join-Path $Root "tests\dialog-lifecycle.test.cjs") (Join-Path $Root "tests\parallel-extraction.test.cjs") (Join-Path $Root "tests\benchmark.test.cjs")
       if ($LASTEXITCODE -ne 0) { throw "Runtime regression tests failed for $target" }
     }
   } finally {

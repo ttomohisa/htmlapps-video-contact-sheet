@@ -174,6 +174,7 @@ window.StandaloneAssets=Object.freeze({
       try {
         if (typeof createFFmpegCore !== "function") throw new Error("createFFmpegCore factory was not found.");
         const wasmView = new Uint8Array(wasmBytes);
+        let wasmMemory = null;
         const core = await createFFmpegCore({
           // Emscripten's generated loader normally resolves ffmpeg.wasm
           // relative to the JS script.  Our JS runs inside a blob Worker, where
@@ -184,6 +185,7 @@ window.StandaloneAssets=Object.freeze({
           instantiateWasm: (imports, successCallback) => {
             const module = new WebAssembly.Module(wasmView);
             const instance = new WebAssembly.Instance(module, imports);
+            wasmMemory = Object.values(instance.exports).find(value => value instanceof WebAssembly.Memory) || null;
             successCallback(instance, module);
             return instance.exports;
           },
@@ -218,7 +220,7 @@ window.StandaloneAssets=Object.freeze({
           resultFiles.push({ name, data: copy });
           transfer.push(copy);
         }
-        self.postMessage({ type: "done", exitCode, files: resultFiles }, transfer);
+        self.postMessage({ type: "done", exitCode, files: resultFiles, wasmMemoryBytes: wasmMemory?.buffer.byteLength ?? null }, transfer);
       } catch (error) {
         self.postMessage({ type: "error", name: error?.name || "Error", message: error?.message || String(error), stack: error?.stack || "" });
       }
@@ -249,12 +251,18 @@ window.StandaloneAssets=Object.freeze({
     }
   };
 
+  const createAbortError = (message = "FFmpeg WASM operation was cancelled.") => {
+    try { return new DOMException(message, "AbortError"); }
+    catch (_) { const error = new Error(message); error.name = "AbortError"; return error; }
+  };
+
   class FFmpegRunner {
     constructor(coreJsText, wasmBytes, revokeUrls = []) {
       this.coreJsText = coreJsText;
       this.wasmBytes = wasmBytes;
       this.revokeUrls = revokeUrls;
       this.disposed = false;
+      this.activeRuns = new Set();
     }
     async run(options = {}) {
       if (this.disposed) throw new Error("Runner has been disposed.");
@@ -263,6 +271,14 @@ window.StandaloneAssets=Object.freeze({
       const outputs = Array.isArray(options.outputs) ? [...options.outputs] : [];
       const onLog = typeof options.onLog === "function" ? options.onLog : () => {};
       const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
+      const signal = options.signal && typeof options.signal.addEventListener === "function" ? options.signal : null;
+      if (signal?.aborted) throw createAbortError();
+      const recentLogs = [];
+      const rememberLog = (entry) => {
+        recentLogs.push(`[${entry.stream}] ${entry.message}`);
+        if (recentLogs.length > 40) recentLogs.shift();
+        onLog(entry);
+      };
       const files = [];
       const transfer = [];
       for (const file of Array.isArray(options.files) ? options.files : []) {
@@ -272,8 +288,6 @@ window.StandaloneAssets=Object.freeze({
           if (!file.name.startsWith("/") || file.name.lastIndexOf("/") <= 0) {
             throw new Error("WORKERFS input names must include a mount directory, for example /workerfs/input.mp4.");
           }
-          // Blob/File is structured-cloned to the Worker. WORKERFS then reads only
-          // the requested slices instead of copying the whole media file into MEMFS.
           files.push({ name: file.name, data: file.data, workerfs: true });
           continue;
         }
@@ -281,33 +295,59 @@ window.StandaloneAssets=Object.freeze({
         files.push({ name: file.name, data, workerfs: false });
         transfer.push(data);
       }
+      if (this.disposed) throw createAbortError("FFmpeg WASM runner was disposed.");
+      if (signal?.aborted) throw createAbortError();
       const wasmForRun = this.wasmBytes.slice(0);
       transfer.push(wasmForRun);
       return await new Promise((resolve, reject) => {
         const created = createWorker(this.coreJsText);
         const worker = created.worker;
-        const finish = () => { worker.terminate(); URL.revokeObjectURL(created.url); };
+        let settled = false;
+        const operation = { cancel: null };
+        const finish = () => {
+          if (settled) return false;
+          settled = true;
+          if (signal) signal.removeEventListener("abort", onAbort);
+          this.activeRuns.delete(operation);
+          worker.terminate();
+          URL.revokeObjectURL(created.url);
+          return true;
+        };
+        const fail = (error) => { if (finish()) reject(error); };
+        const succeed = (value) => { if (finish()) resolve(value); };
+        const onAbort = () => fail(createAbortError());
+        operation.cancel = (error = createAbortError("FFmpeg WASM runner was disposed.")) => fail(error);
+        this.activeRuns.add(operation);
+        if (signal) signal.addEventListener("abort", onAbort, { once: true });
         worker.onmessage = (event) => {
+          if (settled) return;
           const message = event.data;
-          if (message?.type === "log") { onLog({ stream: message.stream, message: message.message }); return; }
+          if (message?.type === "log") { rememberLog({ stream: message.stream, message: message.message }); return; }
           if (message?.type === "progress") { onProgress(message.progress); return; }
           if (message?.type === "done") {
-            finish();
-            resolve({ exitCode: message.exitCode, files: message.files.map((file) => ({ name: file.name, data: new Uint8Array(file.data) })) });
+            succeed({ exitCode: message.exitCode, wasmMemoryBytes: message.wasmMemoryBytes ?? null, files: message.files.map((file) => ({ name: file.name, data: new Uint8Array(file.data) })) });
             return;
           }
           if (message?.type === "error") {
-            finish();
-            const error = new Error(message.message); error.name = message.name || "Error"; error.stack = message.stack || error.stack; reject(error);
+            const tail = recentLogs.length ? `\nRecent FFmpeg log:\n${recentLogs.slice(-20).join("\n")}` : "";
+            const error = new Error(String(message.message || "FFmpeg WASM worker failed.") + tail);
+            error.name = message.name || "Error";
+            error.stack = (message.stack || error.stack || "") + tail;
+            fail(error);
           }
         };
-        worker.onerror = (event) => { finish(); reject(event.error || new Error(event.message || "FFmpeg WASM worker failed.")); };
-        worker.postMessage({ wasmBytes: wasmForRun, args, files, outputs }, transfer);
+        worker.onerror = (event) => fail(event.error || new Error(event.message || "FFmpeg WASM worker failed."));
+        if (signal?.aborted) { onAbort(); return; }
+        worker.onmessageerror = () => fail(new Error("Could not deserialize FFmpeg Worker message."));
+        try { worker.postMessage({ wasmBytes: wasmForRun, args, files, outputs }, transfer); }
+        catch (error) { fail(error); }
       });
     }
     dispose() {
       if (this.disposed) return;
       this.disposed = true;
+      for (const operation of [...this.activeRuns]) operation.cancel();
+      this.activeRuns.clear();
       for (const url of this.revokeUrls) URL.revokeObjectURL(url);
       this.revokeUrls = [];
       this.coreJsText = "";
@@ -355,6 +395,10 @@ window.StandaloneAssets=Object.freeze({
     const thumbSize = Number(options.thumbSize ?? 320);
     if (![12, 24, 48].includes(count)) throw new RangeError("Video Contact Sheet count must be 12, 24, or 48.");
     if (!Number.isInteger(thumbSize) || thumbSize < 96 || thumbSize > 640) throw new RangeError("Video Contact Sheet thumbSize must be an integer from 96 to 640.");
+    const partitionCount = Number(options.partitionCount ?? 1);
+    const partitionIndex = Number(options.partitionIndex ?? 0);
+    if (![1, 2].includes(partitionCount)) throw new RangeError("Video Contact Sheet partitionCount must be 1 or 2.");
+    if (!Number.isInteger(partitionIndex) || partitionIndex < 0 || partitionIndex >= partitionCount) throw new RangeError("Video Contact Sheet partitionIndex is out of range.");
     const args = [
       "--input", options.input || "/workerfs/input.mp4",
       "--output", options.output || "/contact-sheet.ppm",
@@ -365,6 +409,9 @@ window.StandaloneAssets=Object.freeze({
       const columns = Number(options.columns);
       if (!Number.isInteger(columns) || columns < 1 || columns > Math.min(16, count)) throw new RangeError("Video Contact Sheet columns are out of range.");
       args.push("--columns", String(columns));
+    }
+    if (options.partitionCount !== undefined || options.partitionIndex !== undefined) {
+      args.push("--partition-count", String(partitionCount), "--partition-index", String(partitionIndex));
     }
     if (options.metadataOutput) {
       args.push("--metadata-output", String(options.metadataOutput));
@@ -416,7 +463,118 @@ window.StandaloneAssets=Object.freeze({
     return JSON.parse(new TextDecoder().decode(file.data));
   };
 
+  // Independent single-thread instances; no SharedArrayBuffer or cross-origin isolation.
+  const contactSheetWorkerCount = (capabilities = {}, override) => {
+    if (override !== undefined && override !== null) {
+      if (![1, 2].includes(override)) throw new RangeError("Contact Sheet worker count must be 1 or 2.");
+      return override;
+    }
+    return Number(capabilities.hardwareConcurrency) >= 4 && Number(capabilities.deviceMemory) >= 8 ? 2 : 1;
+  };
+
+  const mergeContactSheetPartitions = (partitions, expectedCount) => {
+    if (!Array.isArray(partitions) || partitions.length !== 2) throw new Error("Exactly two contact-sheet partitions are required.");
+    const first = partitions[0]?.meta;
+    if (!first || ![12, 24, 48].includes(first.count) || first.count !== expectedCount) throw new Error("Partition global count mismatch.");
+    if (first.schemaVersion !== 1) throw new Error("Unsupported contact-sheet metadata schema.");
+    const positive = key => Number.isSafeInteger(first[key]) && first[key] > 0;
+    if (!["columns", "rows", "cellWidth", "cellHeight", "sheetWidth", "sheetHeight"].every(positive) ||
+        first.columns > first.count || first.rows !== Math.ceil(first.count / first.columns) ||
+        first.sheetWidth !== first.columns * first.cellWidth || first.sheetHeight !== first.rows * first.cellHeight ||
+        !Number.isFinite(first.durationSeconds) || first.durationSeconds <= 0) throw new Error("Invalid partition dimensions or metadata.");
+    const byteLength = first.sheetWidth * first.sheetHeight * 3;
+    if (!Number.isSafeInteger(byteLength)) throw new Error("Invalid partition pixel dimensions.");
+    const metadataKeys = Object.keys(first).filter(k => !["samples", "partitionCount", "partitionIndex"].includes(k)).sort();
+    const shared = meta => JSON.stringify(metadataKeys.map(k => meta[k]));
+    const reference = shared(first), samples = new Array(first.count), seen = new Set();
+    // Reuse the first partial's buffer after validation; never allocate a third full sheet.
+    for (const { ppm, meta } of partitions) {
+      if (!meta || meta.partitionCount !== 2 || ![0, 1].includes(meta.partitionIndex) || seen.has(meta.partitionIndex)) throw new Error("Invalid contact-sheet partition identity.");
+      seen.add(meta.partitionIndex);
+      if (shared(meta) !== reference || JSON.stringify(Object.keys(meta).filter(k => !["samples", "partitionCount", "partitionIndex"].includes(k)).sort()) !== JSON.stringify(metadataKeys)) throw new Error("Partition metadata mismatch.");
+      if (!ppm || ppm.width !== first.sheetWidth || ppm.height !== first.sheetHeight || !(ppm.pixels instanceof Uint8Array) || ppm.pixels.length !== byteLength) throw new Error("Partition pixel dimensions mismatch.");
+      if (!Array.isArray(meta.samples) || meta.samples.length !== first.count / 2) throw new Error("Incomplete partition samples.");
+      for (const sample of meta.samples) {
+        if (!sample || !Number.isInteger(sample.index) || sample.index < 0 || sample.index >= first.count || sample.index % 2 !== meta.partitionIndex || samples[sample.index] ||
+            !Number.isFinite(sample.targetSeconds) || sample.targetSeconds < 0 || !Number.isFinite(sample.actualSeconds) || sample.actualSeconds < 0) throw new Error("Invalid or duplicate partition sample.");
+        samples[sample.index] = { ...sample };
+      }
+    }
+    if (samples.filter(Boolean).length !== first.count) throw new Error("Missing global contact-sheet sample.");
+    const ppm = partitions[0].ppm;
+    for (const part of partitions.slice(1)) for (const sample of part.meta.samples) {
+      const x = (sample.index % first.columns) * first.cellWidth;
+      const y = Math.floor(sample.index / first.columns) * first.cellHeight;
+      for (let row = 0; row < first.cellHeight; row++) {
+        const start = ((y + row) * first.sheetWidth + x) * 3;
+        ppm.pixels.set(part.ppm.pixels.subarray(start, start + first.cellWidth * 3), start);
+      }
+    }
+    const { partitionCount, partitionIndex, ...meta } = first;
+    return { ppm, meta: { ...meta, samples } };
+  };
+
+  const extractContactSheet = async (runner, options = {}) => {
+    const requestedWorkers = contactSheetWorkerCount(options.capabilities, options.workerCount);
+    const count = options.count ?? 12, ppmPath = "/contact-sheet.ppm", jsonPath = "/contact-sheet.json";
+    const started = performance.now(), metrics = { requestedWorkers, workersUsed: requestedWorkers, fallbackReason: null, extractionMs: 0, mergeMs: 0, wasmMemoryBytes: null, attempts: [] };
+    const onLog = typeof options.onLog === "function" ? options.onLog : () => {};
+    const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
+    let reported = 0;
+    const progress = value => { if (!Number.isFinite(value)) return; reported = Math.max(reported, Math.max(0, Math.min(1, value))); onProgress(reported); };
+    const runAttempt = async workers => {
+      if (options.signal?.aborted) throw createAbortError();
+      const controller = new AbortController(), eachProgress = new Array(workers).fill(0);
+      const cancel = () => controller.abort();
+      options.signal?.addEventListener("abort", cancel, { once: true });
+      const attempt = { workers, elapsedMs: 0, wasmMemoryBytes: null, status: "running" }, attemptStarted = performance.now();
+      metrics.attempts.push(attempt);
+      const jobs = Array.from({ length: workers }, (_, index) => {
+        const args = videoContactSheetArgs({ input: "/workerfs/input.bin", output: ppmPath, metadataOutput: jsonPath, count, thumbSize: options.thumbSize,
+          ...(workers === 2 ? { partitionCount: 2, partitionIndex: index } : {}) });
+        return runner.run({ files: [{ name: "/workerfs/input.bin", data: options.file, workerfs: true }], outputs: [ppmPath, jsonPath], args, signal: controller.signal,
+          onLog: entry => { if (!controller.signal.aborted) onLog({ ...entry, worker: index + 1, workers }); },
+          onProgress: value => { if (controller.signal.aborted || !Number.isFinite(value)) return; eachProgress[index] = Math.max(eachProgress[index], Math.max(0, Math.min(1, value))); progress(eachProgress.reduce((a, b) => a + b, 0) / workers); }
+        });
+      });
+      try {
+        const results = await Promise.all(jobs);
+        attempt.wasmMemoryBytes = results.every(r => Number.isSafeInteger(r.wasmMemoryBytes) && r.wasmMemoryBytes > 0) ? results.reduce((sum, r) => sum + r.wasmMemoryBytes, 0) : null;
+        const decoded = results.map(result => ({ ppm: decodePpmOutput(result, ppmPath), meta: decodeJsonOutput(result, jsonPath) }));
+        const mergeStarted = performance.now();
+        const result = workers === 2 ? mergeContactSheetPartitions(decoded, count) : decoded[0];
+        metrics.mergeMs += performance.now() - mergeStarted;
+        metrics.wasmMemoryBytes = attempt.wasmMemoryBytes;
+        attempt.status = "done";
+        return result;
+      } catch (error) {
+        // Abort triggers synchronous Worker termination. Wait for every rejection before retry.
+        controller.abort();
+        await Promise.allSettled(jobs);
+        attempt.status = options.signal?.aborted ? "cancelled" : "failed";
+        throw error;
+      } finally {
+        options.signal?.removeEventListener("abort", cancel);
+        attempt.elapsedMs = performance.now() - attemptStarted;
+      }
+    };
+    let result;
+    try { result = await runAttempt(requestedWorkers); }
+    catch (error) {
+      if (options.signal?.aborted || requestedWorkers === 1) throw error;
+      metrics.workersUsed = 1;
+      metrics.fallbackReason = error?.message || String(error);
+      onLog({ stream: "info", message: "Two-worker extraction failed; retrying with one Worker. " + metrics.fallbackReason });
+      result = await runAttempt(1);
+    }
+    metrics.extractionMs = performance.now() - started - metrics.mergeMs;
+    return { ...result, metrics };
+  };
+
   window.BrowserFFmpeg = Object.freeze({
+    contactSheetWorkerCount,
+    mergeContactSheetPartitions,
+    extractContactSheet,
     loadEmbedded,
     videoCompressorArgs,
     losslessVideoCutterArgs,
@@ -526,7 +684,31 @@ async function prepareRunner(){if(state.runner)return state.runner;setProgress(.
 function ppmToCanvas(ppm,meta){const c=els.canvas;c.width=ppm.width;c.height=ppm.height;const ctx=c.getContext('2d',{alpha:false});const img=ctx.createImageData(ppm.width,ppm.height),dst=img.data,src=ppm.pixels;for(let s=0,d=0;s<src.length;s+=3,d+=4){dst[d]=src[s];dst[d+1]=src[s+1];dst[d+2]=src[s+2];dst[d+3]=255}ctx.putImageData(img,0,0);if($('timestamps').checked&&meta?.samples){const cw=meta.cellWidth,ch=meta.cellHeight,cols=meta.columns;const scale=Math.max(1,Math.min(cw,ch)/180);const fs=Math.max(10,Math.round(13*scale));ctx.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;ctx.textBaseline='bottom';for(const s of meta.samples){const col=s.index%cols,row=Math.floor(s.index/cols),label=formatTime(s.actualSeconds);const x=col*cw+5*scale,y=(row+1)*ch-4*scale;const m=ctx.measureText(label),padX=5*scale,padY=3*scale;ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(x-padX/2,y-fs-padY,m.width+padX,fs+padY*1.3);ctx.fillStyle='#fff';ctx.fillText(label,x,y)}}}
 function formatTime(sec){sec=Math.max(0,Number(sec)||0);const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=Math.floor(sec%60);return h?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 function defaultThumbSize(){return state.count===48?220:state.count===24?280:320}
-async function generate(){if(!state.file||state.busy)return;resetResult();setBusy(true);try{const runner=await prepareRunner();setProgress(.03,'analyzing');const ppmPath='/contact-sheet.ppm',jsonPath='/contact-sheet.json';const result=await runner.run({files:[{name:'/workerfs/input.bin',data:state.file,workerfs:true}],outputs:[ppmPath,jsonPath],args:BrowserFFmpeg.videoContactSheetArgs({input:'/workerfs/input.bin',output:ppmPath,metadataOutput:jsonPath,count:state.count,thumbSize:defaultThumbSize()}),onLog:({stream,message})=>{els.log.textContent+=`[${stream}] ${message}\n`},onProgress:v=>setProgress(.03+v*.95)});state.ppm=BrowserFFmpeg.decodePpmOutput(result,ppmPath);state.meta=BrowserFFmpeg.decodeJsonOutput(result,jsonPath);ppmToCanvas(state.ppm,state.meta);state.generated=true;state.lastGenerationSignature=generationSignature();syncOutputFilename(true);setProgress(1,'done');els.emptyResult.classList.add('hidden');els.canvasWrap.classList.remove('hidden');els.resultActions.classList.remove('hidden');els.resultStats.classList.remove('hidden');setCurrentStep('result');els.resultStats.innerHTML=`<span class="pill">${state.meta.count} ${state.lang==='ja'?'枚':'frames'}</span><span class="pill">${formatTime(state.meta.durationSeconds)}</span><span class="pill">${escapeHtml(state.meta.codec)}</span><span class="pill">${state.meta.sheetWidth}×${state.meta.sheetHeight}</span>`;els.resultSub.textContent=t('zoomReadySub');updateActions();setTimeout(()=>{if(matchMedia('(max-width:600px)').matches)setMobilePage('result');else $('resultPanel').scrollIntoView({behavior:'smooth',block:'start'})},80)}catch(err){showError(err)}finally{state.busy=false;updateActions();document.querySelectorAll('.count,#selectBtn,#clearBtn').forEach(x=>x.disabled=false)}}
+async function generate(){
+  if(!state.file||state.busy)return;
+  resetResult();setBusy(true);
+  try{
+    const runner=await prepareRunner();
+    setProgress(.03,'analyzing');
+    const result=await BrowserFFmpeg.extractContactSheet(runner,{
+      file:state.file,count:state.count,thumbSize:defaultThumbSize(),
+      capabilities:navigator,
+      onLog:({stream,message,worker})=>{els.log.textContent+=`[${stream}${worker?' worker '+worker:''}] ${message}\n`},
+      onProgress:v=>setProgress(.03+v*.95)
+    });
+    state.ppm=result.ppm;state.meta=result.meta;
+    ppmToCanvas(state.ppm,state.meta);
+    els.log.textContent+=`[info] Workers: ${result.metrics.workersUsed}; extraction: ${Math.round(result.metrics.extractionMs)} ms; merge: ${Math.round(result.metrics.mergeMs)} ms; allocated WASM: ${result.metrics.wasmMemoryBytes??'unavailable'} bytes\n`;
+    els.details.removeAttribute('open');els.details.classList.remove('hidden');
+    state.generated=true;state.lastGenerationSignature=generationSignature();syncOutputFilename(true);setProgress(1,'done');
+    els.emptyResult.classList.add('hidden');els.canvasWrap.classList.remove('hidden');els.resultActions.classList.remove('hidden');els.resultStats.classList.remove('hidden');
+    setCurrentStep('result');
+    els.resultStats.innerHTML=`<span class="pill">${state.meta.count} ${state.lang==='ja'?'枚':'frames'}</span><span class="pill">${formatTime(state.meta.durationSeconds)}</span><span class="pill">${escapeHtml(state.meta.codec)}</span><span class="pill">${state.meta.sheetWidth}×${state.meta.sheetHeight}</span>`;
+    els.resultSub.textContent=t('zoomReadySub');updateActions();
+    setTimeout(()=>{if(matchMedia('(max-width:600px)').matches)setMobilePage('result');else $('resultPanel').scrollIntoView({behavior:'smooth',block:'start'})},80);
+  }catch(err){showError(err)}
+  finally{state.busy=false;updateActions();document.querySelectorAll('.count,#selectBtn,#clearBtn').forEach(x=>x.disabled=false)}
+}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function redraw(){if(state.ppm&&state.meta)ppmToCanvas(state.ppm,state.meta)}
 function save(){if(!state.generated)return;const mime=state.format==='jpeg'?'image/jpeg':'image/png',quality=state.format==='jpeg'?.92:undefined;syncOutputFilename(false);const filename=els.outputFilename.value;els.canvas.toBlob(blob=>{if(!blob)return;const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)},mime,quality)}
