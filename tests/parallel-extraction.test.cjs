@@ -124,16 +124,14 @@ test('runner cleans up synchronous postMessage failure and message deserializati
   }
 });
 
-test('Generate supplies the benchmark override and capacity to extraction, then records actual stages without changing app version', async () => {
+test('production Generate uses device capacity without a global override and reports actual technical measurements', async () => {
   const { fixture } = require('./runtime-harness.cjs'); const f = fixture();
-  assert.ok(f.context.VideoContactSheetBenchmark, 'programmatic benchmark controls are available');
-  f.context.VideoContactSheetBenchmark.workerCount = 2;
+  assert.equal(f.context.VideoContactSheetBenchmark, undefined, 'production has no benchmark override or lastRun global');
   f.context.navigator.hardwareConcurrency = 8; f.context.navigator.deviceMemory = 8;
   await f.result();
-  assert.equal(f.extractions.length, 1); assert.equal(f.extractions[0].workerCount, 2); assert.equal(f.extractions[0].capabilities.deviceMemory, 8);
-  assert.equal(f.api.state.generated, true); assert.equal(f.context.VideoContactSheetBenchmark.lastRun.workersUsed, 2);
-  for (const key of ['loadMs', 'renderMs', 'totalMs']) assert.ok(f.context.VideoContactSheetBenchmark.lastRun[key] >= 0, key);
-  assert.match(f.get('log').textContent, /Workers: 2/); assert.equal(f.context.VideoContactSheetBenchmark.lastRun.appVersion, require('../app.config.json').version);
+  assert.equal(f.extractions.length, 1); assert.equal(f.extractions[0].workerCount, undefined); assert.equal(f.extractions[0].capabilities.deviceMemory, 8);
+  assert.equal(f.api.state.generated, true);
+  assert.match(f.get('log').textContent, /Workers: 2; extraction: 1 ms; merge: 0 ms; allocated WASM: unavailable bytes/);
 });
 
 test('pre-aborted extraction starts no Workers and never retries', async () => {
@@ -170,14 +168,14 @@ test('memory measurement is unavailable rather than fabricated if one Worker can
   const result = await api.extractContactSheet(runner, { file: new Blob(['x']), workerCount: 2 }); assert.equal(result.metrics.wasmMemoryBytes, null);
 });
 
-test('test-only benchmark preview packaging stays out of production build/deploy', () => {
+test('public preview and production workflows do not build or publish the manual benchmark harness', () => {
   const fs = require('node:fs'), path = require('node:path');
   const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-  assert.match(read('.github/workflows/preview.yml'), /node tests\/benchmark\/assemble\.cjs/);
-  assert.match(read('.github/workflows/preview.yml'), /--verify-only/);
-  assert.match(read('.github/workflows/preview.yml'), /d88553dc610a82e285db125e31f1655d324cec6c/);
-  assert.equal(fs.existsSync(path.join(__dirname,'preview/index.benchmark.html')),false);
-  for (const file of ['build-standalone.ps1', '.github/workflows/deploy-pages.yml', '.github/workflows/build-standalone.yml']) assert.doesNotMatch(read(file), /index\.benchmark\.html|benchmark\.html/);
+  for (const file of ['.github/workflows/preview.yml', 'build-standalone.ps1', '.github/workflows/deploy-pages.yml', '.github/workflows/build-standalone.yml']) {
+    assert.doesNotMatch(read(file), /tests\/benchmark\/assemble\.cjs|benchmark-core|index\.benchmark\.html|benchmark\.html/);
+  }
+  assert.equal(fs.existsSync(path.join(__dirname, 'preview/index.benchmark.html')), false);
+  assert.equal(fs.existsSync(path.join(__dirname, 'benchmark/assemble.cjs')), true, 'manual source-only fixture remains available');
 });
 
 test('merger rejects an unknown schema even if both partials agree', () => {
@@ -189,4 +187,29 @@ test('runner reports measured linear memory on success and cleans up once', asyn
   const { api, revoked } = runtime(Worker); const runner = await api.loadEmbedded({ coreJsText: '', wasmBytes: new Uint8Array([0]) });
   const pending = runner.run({}); worker.onmessage({ data: { type: 'done', exitCode: 0, files: [], wasmMemoryBytes: 33554432 } });
   const result = await pending; runner.dispose(); assert.equal(result.wasmMemoryBytes, 33554432); assert.equal(worker.terminations, 1); assert.equal(revoked.length, 1);
+});
+
+test('successful generation exposes a collapsed localized Processing log without opening it', async () => {
+  const { fixture } = require('./runtime-harness.cjs'); const f = fixture({ language: 'en' });
+  const details = f.get('details'); assert.equal(details.classList.contains('hidden'), true);
+  await f.result();
+  assert.equal(details.classList.contains('hidden'), false, 'successful Worker diagnostics must be reachable');
+  assert.equal(details.getAttribute('open'), null);
+  const summary = details.children.find(node => node.tagName === 'SUMMARY');
+  assert.equal(summary.textContent, 'Processing log');
+  details.setAttribute('open', ''); await f.result();
+  assert.equal(details.classList.contains('hidden'), false); assert.equal(details.getAttribute('open'), null, 'a new success is collapsed even if the previous log was open');
+  await f.get('langBtn').click(); assert.equal(summary.textContent, '処理ログ');
+});
+
+test('production uses the released partition-capable dependency pin without changing the app version', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const root = path.resolve(__dirname, '..');
+  const dependency = JSON.parse(fs.readFileSync(path.join(root, 'dependencies.json'), 'utf8')).dependencies[0];
+  assert.equal(dependency.version, '1.10.4');
+  assert.equal(dependency.source, 'github-release');
+  assert.equal(dependency.releaseAsset, 'ffmpeg-wasm-video-contact-sheet-v{version}.zip');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'app.config.json'), 'utf8')).version, '1.0.6');
+  assert.match(fs.readFileSync(path.join(root, 'scripts/check-repository.ps1'), 'utf8'), /version -ne "1\.10\.4"/);
+  assert.match(fs.readFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8'), /ffmpeg-wasm-video-contact-sheet-v1\.10\.4\.zip/);
 });

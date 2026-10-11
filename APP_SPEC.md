@@ -15,7 +15,7 @@ Create a single local image that summarizes a video by sampling evenly across it
 ## Core behavior
 
 - User selects a video File/Blob.
-- The FFmpeg WASM `video-contact-sheet` profile from Builder v1.3.0 is mounted with WORKERFS.
+- The FFmpeg WASM `video-contact-sheet` profile from Builder v1.10.4 is mounted with WORKERFS.
 - The runner seeks to 12, 24, or 48 evenly spaced positions and decodes the required frames.
 - The runner returns one RGB PPM sheet plus JSON metadata.
 - The browser converts the PPM sheet to Canvas and saves PNG or JPEG.
@@ -61,7 +61,7 @@ The generated standalone app has `connect-src 'none'`, no runtime external scrip
 
 ## Dependency model
 
-The source repository does not vendor FFmpeg JS/WASM. `dependencies.json` points to `ttomohisa/htmlapps-ffmpeg-wasm-builder` v1.3.0 and the `ffmpeg-wasm-video-contact-sheet-v{version}.zip` release asset. The repository build follows the same dependency-manifest/self-extract workflow as `htmlapps-lossless-video-cutter`.
+The source repository does not vendor FFmpeg JS/WASM. `dependencies.json` points to `ttomohisa/htmlapps-ffmpeg-wasm-builder` v1.10.4 and the `ffmpeg-wasm-video-contact-sheet-v{version}.zip` release asset. The repository build follows the same dependency-manifest/self-extract workflow as `htmlapps-lossless-video-cutter`.
 
 ## Standalone size
 
@@ -81,4 +81,4 @@ Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the 
 - Automatic two-Worker mode requires at least 4 reported logical processors and 8 GiB reported device memory; lower or unknown capacity uses one Worker.
 - Two partitions use alternating global sample indexes without changing requested count, geometry, seek times, or actual timestamps. Only owned rectangles are merged, and each global sample must appear exactly once.
 - Parallel errors or incompatible output terminate all parallel Workers before one single-Worker retry. No retry loop is allowed.
-- Internal benchmark controls report chosen/final Worker count and stage timings. Allocated WASM memory is labeled separately from browser peak memory. The UI, app version, filenames, regeneration guard, mobile tabs, and runtime network block remain unchanged.
+- The separate manual regression harness reports chosen/final Worker count and stage timings. Production Generate uses capacity selection with no global benchmark override. Allocated WASM memory is labeled separately from browser peak memory. The UI, app version, filenames, regeneration guard, mobile tabs, and runtime network block remain unchanged.

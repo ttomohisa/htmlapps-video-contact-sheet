@@ -2,7 +2,7 @@
 
 ```text
 Repository build time
-  dependencies.json (Builder v1.3.0 pinned)
+  dependencies.json (Builder v1.10.4 pinned)
        ↓
   GitHub Release + SHA256SUMS.txt
        ↓ verify
@@ -40,16 +40,12 @@ The page can run two independent single-thread WASM instances, without SharedArr
 
 On parallel decoding, allocation, or validation failure, an AbortController synchronously terminates outstanding Workers. Every attempt settles before a single-Worker retry starts. The retry omits partition flags, so older cores remain usable. A failed single retry surfaces the error. No more than two WASM instances belong to a generation at any point.
 
-The dependency must supply the partition contract before acceleration can succeed. The currently pinned v1.3.0 core lacks it and therefore retries in single-Worker mode on otherwise eligible devices. Development artifact injection stays outside production dependency resolution until a released Builder dependency is selected.
+The pinned Builder v1.10.4 Contact Sheet profile supplies the compatible partition contract. Capable devices may use two Workers; lower or unknown capacity selects one. Runtime decoding, allocation, or validation failures still use the bounded single-Worker fallback described above. Production resolves only the checksum-verified release dependency; benchmark candidate injection is separate.
 
-### Reproducible benchmark
+### Manual regression benchmark
 
-The developer-only `window.VideoContactSheetBenchmark.workerCount` property accepts `null` (automatic), `1`, or `2` before Generate. It adds no user-facing setting and is not persisted. `lastRun` reports requested/final Workers, fallback reason, per-attempt timing, load/extraction/merge/render/total milliseconds, and allocated WASM bytes if available. Allocated WASM memory is the sum of final non-shrinking linear-memory sizes for that attempt; it is not whole-browser peak memory, JavaScript heap, input Blob storage, or OS RSS.
+The production Generate action always uses capacity-based selection. It exposes no global Worker override or last-run benchmark object. Its technical log reports actual Worker count, extraction/merge timing, and allocated WASM bytes if available. Successful generation reveals the existing localized Processing log summary in a collapsed state. Allocated WASM memory is the sum of final non-shrinking linear-memory sizes for that attempt; it is not whole-browser peak memory, JavaScript heap, input Blob storage, or OS RSS.
 
-Use `tests/browser-benchmark.js` on a development artifact with the partition-capable core. Its function runs the same Blob at 12/24/48 frames in both orders, checks every RGB byte and metadata sample, and returns timings and memory values. Results are device/input-specific; no speed improvement is promised.
+`tests/benchmark/` contains only manual regression source: a visible UI, Node assembly/verification utility, reviewed expected-core hashes, and tests. No generated harness or FFmpeg payload is committed. The generator verifies candidate profile/capabilities, exact raw JS/WASM hashes, and gzip roundtrip, then checks the normal built app against its source template. It can produce a local `dist/benchmark.html` with mode controls, alternating same-file comparisons, stage timings, allocated WASM measurements, and PNG/metadata/measurement downloads. Raw pixels, metadata, and PNG SHA-256 values must all match.
 
-### Temporary Draft PR benchmark route
-
-`tests/benchmark/` contains only source: visible UI, the Node assembly/verification utility, a reviewed expected-core hash record, and tests. No generated harness or FFmpeg payload is committed. The temporary preview workflow builds only the pinned Contact Sheet Builder profile, rejects raw JS/WASM bytes that differ from the independently verified official CI artifact, verifies the manifest and gzip roundtrip, and transfers five files through a same-workflow artifact. After the normal Windows repository build, the generator creates `dist/benchmark.html` and `dist/benchmark-identity.json`. Production build and deployment workflows do not invoke it.
-
-The harness identifies this as a reproduced single-profile CI candidate and records the original verification artifact separately. Its visible controls run the same synthetic file in one/two Worker modes, alternate comparison order, display stage timings and allocated WASM memory, and provide PNG, metadata and measurement JSON downloads with pixel/metadata/PNG SHA-256 hashes. The temporary route and workflow job must be removed before the app PR becomes Ready.
+The temporary public Draft-PR benchmark route and dependency-build job have been removed. Preview, production build, and deployment workflows do not invoke the manual generator. Benchmark timing remains device/input-specific; no general speed improvement is promised.

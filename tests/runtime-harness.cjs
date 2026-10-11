@@ -56,7 +56,8 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
     BrowserFFmpeg: { async extractContactSheet(runner, opts) {
       extractions.push(opts);
       const result = await runner.run({ files: [{ name: '/workerfs/input.bin', data: opts.file, workerfs: true }], args: opts, onProgress: opts.onProgress, onLog: opts.onLog });
-      return { ...result, metrics: { requestedWorkers: opts.workerCount || 1, workersUsed: opts.workerCount || 1, fallbackReason: null, extractionMs: 1, mergeMs: 0, wasmMemoryBytes: null, attempts: [] } };
+      const workers = opts.workerCount ?? (opts.capabilities?.hardwareConcurrency >= 4 && opts.capabilities?.deviceMemory >= 8 ? 2 : 1);
+      return { ...result, metrics: { requestedWorkers: workers, workersUsed: workers, fallbackReason: null, extractionMs: 1, mergeMs: 0, wasmMemoryBytes: null, attempts: [] } };
     }, isSupported: () => true, videoContactSheetArgs: opts => opts, decodePpmOutput: result => result.ppm, decodeJsonOutput: result => result.meta }
   };
   context.window = context;
