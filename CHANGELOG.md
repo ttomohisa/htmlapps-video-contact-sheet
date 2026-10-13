@@ -23,6 +23,12 @@
 
 ## Unreleased
 
+- Pin the checksum-verified FFmpeg WASM Builder v1.10.5 Contact Sheet profile and corresponding source for the expanded thumbnail range.
+
+- Add PC-oriented Ultra / 超高解像度 with Japanese/English memory guidance, a two-by-two narrow-screen selector, and thumbnail long edges of 960 / 840 / 660 px for 12 / 24 / 48 frames. Standard remains the default; existing High guidance is unchanged.
+- Force one extraction Worker above 640 px and validate runtime arguments before starting Workers. Accept 96–960 px integer long edges and reject actual decoded, merged, or rendered outputs above 25,000,000 pixels, retaining compatible 640 px custom-column layouts.
+- Cover all Ultra sizes, bounded output decoding, cancellation with prior-source CSV retention, timestamp-only redraw, and native 5280 × 3960 PNG export. The largest built-in Ultra sheet uses 62,726,400 RGB bytes plus 83,635,200 bytes per RGBA surface; WASM, temporary buffers, retained prior results, browser overhead, and encoding are additional.
+
 - Simplify the two Japanese overview phrases.
 - Keep the preview shell aligned with the displayed image width, avoiding a black gutter and unnecessary horizontal scrolling without changing export resolution.
 - Add Stop generation and retain the last successful, source-labeled image/CSV after cancellation or failed regeneration.
