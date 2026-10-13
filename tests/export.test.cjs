@@ -84,6 +84,23 @@ test('successful regeneration clears the earlier blank CSV filename fallback', a
   const f = fixture(); await f.result(); f.get('outputFilename').value = ''; await f.get('outputFilename').emit('input'); await f.get('outputFilename').emit('blur'); await f.result(f.metadata(24)); await f.get('saveTimestampsBtn').click(); assert.equal(f.downloads[0].filename, 'synthetic_contact-sheet_24_timestamps.csv');
 });
 
+test('preview shell shares the canvas display cap instead of exposing an intrinsic-width black gutter', () => {
+  const { html } = require('./runtime-harness.cjs');
+  const declarations = selector => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const block = html.match(new RegExp('(?:^|})' + escaped + '\\{([^}]*)\\}'))?.[1];
+    assert.ok(block, `missing ${selector} rule`);
+    return Object.fromEntries(block.split(';').filter(Boolean).map(part => part.split(':').map(value => value.trim())));
+  };
+  const shell = declarations('.canvas-shell'), canvas = declarations('canvas');
+  assert.equal(shell.width, 'max-content', 'small sheets retain their natural display width');
+  assert.equal(canvas['max-width'], 'min(100%,1000px)');
+  assert.equal(shell['max-width'], canvas['max-width'], 'the black shell must shrink with the displayed canvas, not the full-resolution bitmap');
+  const mobileShell = declarations('body[data-mobile-page="result"] #canvasShell');
+  assert.ok(!mobileShell['max-width'] || mobileShell['max-width'] === canvas['max-width'], 'the retained mobile Result state must not remove the display cap when the viewport widens');
+  assert.equal(canvas.height, 'auto', 'display sizing preserves aspect ratio');
+});
+
 test('narrow result actions give Save its own full row without shrinking format or Regenerate labels', () => {
   const { html } = require('./runtime-harness.cjs');
   const rules = selector => {
