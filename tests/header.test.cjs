@@ -5,8 +5,8 @@ const { version } = require('../app.config.json');
 const vm = require('node:vm');
 
 const localized = {
-  ja: { language: 'EN', target: '英語に切り替え', help: '使い方と注意事項', close: '閉じる', privacy: '完全ローカル処理' },
-  en: { language: 'JA', target: 'Switch to Japanese', help: 'How to use & notes', close: 'Close', privacy: 'Fully local processing' }
+  ja: { language: 'EN', target: '英語に切り替え', help: '使い方と注意事項', close: '閉じる', privacy: '完全ローカル処理', tagline: '動画全体を一枚で見渡す', introTitle: '動画の流れを一枚の画像に' },
+  en: { language: 'JA', target: 'Switch to Japanese', help: 'How to use & notes', close: 'Close', privacy: 'Fully local processing', tagline: 'See the whole video at a glance.', introTitle: 'Turn a video into one visual overview.' }
 };
 function assertHeader(f, lang) {
   const expected = localized[lang];
@@ -20,7 +20,16 @@ function assertHeader(f, lang) {
     assert.equal(button.getAttribute('title'), label, `${id} tooltip in ${lang}`);
   }
   assert.equal(f.nodes.find(n => n.dataset.i18n === 'local').textContent, expected.privacy);
+  for (const key of ['tagline', 'introTitle']) {
+    assert.equal(f.nodes.find(n => n.dataset.i18n === key).textContent, expected[key], `${key} copy in ${lang}`);
+  }
 }
+test('initial Japanese overview copy matches the localized text', () => {
+  const { html } = require('./runtime-harness.cjs');
+  for (const key of ['tagline', 'introTitle']) {
+    assert.equal(html.match(new RegExp(`data-i18n="${key}">([^<]*)<`))[1], localized.ja[key]);
+  }
+});
 for (const language of ['ja', 'ja-JP', 'en', 'en-US']) test(`header names target language and localizes Help across repeated toggles from ${language}`, async () => {
   const f = fixture({ language, mobile: true });
   let lang = language.startsWith('ja') ? 'ja' : 'en';
