@@ -83,3 +83,46 @@ test('blank field focus-loss before CSV preserves generic fallback despite pendi
 test('successful regeneration clears the earlier blank CSV filename fallback', async () => {
   const f = fixture(); await f.result(); f.get('outputFilename').value = ''; await f.get('outputFilename').emit('input'); await f.get('outputFilename').emit('blur'); await f.result(f.metadata(24)); await f.get('saveTimestampsBtn').click(); assert.equal(f.downloads[0].filename, 'synthetic_contact-sheet_24_timestamps.csv');
 });
+
+test('preview shell shares the canvas display cap instead of exposing an intrinsic-width black gutter', () => {
+  const { html } = require('./runtime-harness.cjs');
+  const declarations = selector => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const block = html.match(new RegExp('(?:^|})' + escaped + '\\{([^}]*)\\}'))?.[1];
+    assert.ok(block, `missing ${selector} rule`);
+    return Object.fromEntries(block.split(';').filter(Boolean).map(part => part.split(':').map(value => value.trim())));
+  };
+  const shell = declarations('.canvas-shell'), canvas = declarations('canvas');
+  assert.equal(shell.width, 'max-content', 'small sheets retain their natural display width');
+  assert.equal(canvas['max-width'], 'min(100%,1000px)');
+  assert.equal(shell['max-width'], canvas['max-width'], 'the black shell must shrink with the displayed canvas, not the full-resolution bitmap');
+  const mobileShell = declarations('body[data-mobile-page="result"] #canvasShell');
+  assert.ok(!mobileShell['max-width'] || mobileShell['max-width'] === canvas['max-width'], 'the retained mobile Result state must not remove the display cap when the viewport widens');
+  assert.equal(canvas.height, 'auto', 'display sizing preserves aspect ratio');
+});
+
+test('narrow result actions give Save its own full row without shrinking format or Regenerate labels', () => {
+  const { html } = require('./runtime-harness.cjs');
+  const rules = selector => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return [...html.matchAll(new RegExp(escaped + '\\{([^}]*)\\}', 'g'))].map(m => m[1]).join(';');
+  };
+  const prefix = 'body[data-mobile-page="result"] #resultActions';
+  assert.match(rules(prefix), /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, 'two flexible columns keep format and Regenerate from squeezing Save');
+  assert.match(rules(prefix + ' #saveBtn'), /grid-column:1\s*\/\s*-1/, 'image Save needs the complete row at 320–400 CSS pixels');
+  assert.match(rules(prefix + ' #saveTimestampsBtn'), /grid-column:1\s*\/\s*-1/);
+  assert.match(rules(prefix + ' .format-group'), /width:100%/);
+  assert.match(rules(prefix + ' .format-group'), /min-width:0/);
+  assert.match(rules(prefix + ' .format-group button'), /flex:1/);
+  assert.match(rules(prefix + ' .format-group button'), /padding:7px 6px/);
+  assert.match(rules(prefix + ' #regenerateBtn'), /min-width:0/);
+  assert.match(rules(prefix + ' #regenerateBtn'), /padding-inline:6px/);
+  assert.match(rules(prefix + ' #regenerateBtn'), /white-space:normal/);
+  assert.match(rules(prefix + ' #regenerateBtn'), /overflow-wrap:anywhere/);
+  assert.doesNotMatch(rules(prefix + ' #saveBtn') + rules(prefix + ' #regenerateBtn'), /font-size:|text-overflow:|overflow:hidden/, 'keep full-sized names rather than clipping or shrinking them');
+  for (const language of ['ja', 'en']) {
+    const f = fixture({ language, mobile: true });
+    assert.equal(f.get('regenerateBtn').textContent, language === 'ja' ? '再生成' : 'Regenerate');
+    assert.equal(f.nodes.find(n => n.dataset.i18n === 'saveImage').textContent, language === 'ja' ? '画像を保存' : 'Save image');
+  }
+});

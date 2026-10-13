@@ -213,3 +213,10 @@ test('production uses the released partition-capable dependency pin without chan
   assert.match(fs.readFileSync(path.join(root, 'scripts/check-repository.ps1'), 'utf8'), /version -ne "1\.10\.4"/);
   assert.match(fs.readFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8'), /ffmpeg-wasm-video-contact-sheet-v1\.10\.4\.zip/);
 });
+
+for (const workerCount of [1, 2]) test(`abort after ${workerCount} workers settle rejects without decoding or retry`, async () => {
+  const { api } = runtime(), controller = new AbortController(); let starts = 0, decodes = 0;
+  const runner = { async run() { starts++; return { get files() { decodes++; throw new Error('must not decode cancelled result'); } }; } };
+  const pending = api.extractContactSheet(runner, { file: new Blob(['x']), workerCount, signal: controller.signal }); controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' }); assert.equal(starts, workerCount); assert.equal(decodes, 0);
+});

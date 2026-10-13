@@ -75,3 +75,30 @@ test('local processing badge uses the decorative shared shield before its truthf
   const badge=html.match(/<div class="local">([\s\S]*?)<\/div>/)[1];
   assert.match(badge, /<svg[^>]*aria-hidden="true"[^>]*><path d="M12 3 5 6v5c0 4\.6 2\.8 8 7 10 4\.2-2 7-5\.4 7-10V6z"\/><path d="m9 12 2 2 4-5"\/><\/svg><span data-i18n="local">/);
 });
+
+test('late zoom encoding cannot replace a newer result preview or leak its active URL', async () => {
+  const f = fixture(); await f.result(); const first = f.get('canvasShell').click(); await f.get('zoomClose').click();
+  f.get('timestamps').checked = false; await f.api.generate(); const second = f.get('canvasShell').click();
+  f.complete(1); await Promise.resolve(); const currentUrl = f.get('zoomImage').src; f.get('zoomImage').onload(); await second;
+  f.complete(0); await Promise.resolve();
+  assert.equal(f.get('zoomImage').src, currentUrl, 'older encoded pixels must not replace the active preview');
+  assert.equal(f.get('zoomImage').classList.contains('hidden'), false); assert.equal(f.revoked.includes(currentUrl), false);
+  await first; await f.get('zoomClose').click(); assert.deepEqual(f.revoked, [currentUrl]);
+});
+
+test('late zoom image-load callbacks cannot change a reopened viewer and old URLs are revoked once', async () => {
+  const f = fixture(); await f.result(); const first = f.get('canvasShell').click(); f.complete(); await Promise.resolve();
+  const oldUrl = f.get('zoomImage').src, oldLoad = f.get('zoomImage').onload, oldError = f.get('zoomImage').onerror;
+  await f.get('zoomClose').click(); const second = f.get('canvasShell').click(); f.complete(1); await Promise.resolve();
+  const currentUrl = f.get('zoomImage').src; oldLoad(); oldError(new Error('late old image error')); await Promise.resolve();
+  assert.equal(f.get('zoomImage').classList.contains('hidden'), true, 'current preview still awaits its own image load');
+  assert.equal(f.get('zoomImage').src, currentUrl); assert.equal(f.get('zoomLoading').textContent, 'Preparing preview…');
+  f.get('zoomImage').onload(); await second; await first; assert.deepEqual(f.revoked, [oldUrl]);
+  await f.get('zoomClose').click(); assert.deepEqual(f.revoked, [oldUrl, currentUrl]);
+});
+
+test('closing zoom before a failed encoding leaves the next preview status unchanged', async () => {
+  const f = fixture(); await f.result(); const first = f.get('canvasShell').click(); await f.get('zoomClose').click();
+  const second = f.get('canvasShell').click(); f.complete(0, true); await first;
+  assert.equal(f.get('zoomLoading').textContent, 'Preparing preview…'); f.complete(1); await Promise.resolve(); f.get('zoomImage').onload(); await second;
+});

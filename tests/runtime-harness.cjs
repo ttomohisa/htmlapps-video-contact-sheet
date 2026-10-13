@@ -17,6 +17,7 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
       addEventListener(k, fn) { if (!listeners.has(k)) listeners.set(k, []); listeners.get(k).push(fn); }, removeEventListener() {},
       async emit(k, extra = {}) { const e = { target: this, preventDefault() {}, ...extra }; if (typeof this['on' + k] === 'function') await this['on' + k](e); for (const fn of listeners.get(k) || []) await fn(e); },
       click() { if (tag === 'a') downloads.push({ filename: this.download, blob: urls.get(this.href), url: this.href }); else if (!this.disabled) return this.emit('click'); },
+      replaceWith(replacement) { const index = this.parentElement.children.indexOf(this); this.parentElement.children[index] = replacement; replacement.parentElement = this.parentElement; if (replacement.attrs.id) ids.set(replacement.attrs.id, replacement); this.parentElement = null; this.isConnected = false; },
       scrollIntoView() {}, getBoundingClientRect() { return { left: 0, top: 0, width: 500, height: 500 }; },
       contains(other) { for (let n = other; n; n = n.parentElement) if (n === this) return true; return false; },
       closest(selector) { for (let n = this; n; n = n.parentElement) if (matches(n, selector)) return n; return null; },
@@ -49,13 +50,13 @@ function fixture({ language = 'en', mobile = false, appVersion } = {}) {
   document.activeElement = document.body;
   const get = id => { assert.ok(ids.has(id), `Expected #${id} in HTML`); return ids.get(id); };
   let nextResult;
-  const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray, performance, AbortController,
+  const context = { document, navigator: { language }, Blob, console, Uint8ClampedArray, performance, AbortController, DOMException,
     URL: { createObjectURL(blob) { const url = `blob:synthetic-${urls.size + 1}`; urls.set(url, blob); return url; }, revokeObjectURL(url) { revoked.push(url); } },
-    setTimeout(fn, delay) { timers.push({ fn, delay }); return timers.length; }, clearTimeout() {}, requestAnimationFrame() {},
+    setTimeout(fn, delay) { timers.push({ fn, delay }); if (delay === 0) queueMicrotask(fn); return timers.length; }, clearTimeout() {}, requestAnimationFrame() {},
     matchMedia: q => ({ matches: q.includes('max-width') ? mobile : q.includes('min-width') ? !mobile : false }), addEventListener() {}, scrollTo() {},
     BrowserFFmpeg: { async extractContactSheet(runner, opts) {
       extractions.push(opts);
-      const result = await runner.run({ files: [{ name: '/workerfs/input.bin', data: opts.file, workerfs: true }], args: opts, onProgress: opts.onProgress, onLog: opts.onLog });
+      const result = await runner.run({ files: [{ name: '/workerfs/input.bin', data: opts.file, workerfs: true }], args: opts, signal: opts.signal, onProgress: opts.onProgress, onLog: opts.onLog });
       const workers = opts.workerCount ?? (opts.capabilities?.hardwareConcurrency >= 4 && opts.capabilities?.deviceMemory >= 8 ? 2 : 1);
       return { ...result, metrics: { requestedWorkers: workers, workersUsed: workers, fallbackReason: null, extractionMs: 1, mergeMs: 0, wasmMemoryBytes: null, attempts: [] } };
     }, isSupported: () => true, videoContactSheetArgs: opts => opts, decodePpmOutput: result => result.ppm, decodeJsonOutput: result => result.meta }
