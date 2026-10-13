@@ -15,7 +15,7 @@ Create a single local image that summarizes a video by sampling evenly across it
 ## Core behavior
 
 - User selects a video File/Blob.
-- The FFmpeg WASM `video-contact-sheet` profile from Builder v1.10.4 is mounted with WORKERFS.
+- The FFmpeg WASM `video-contact-sheet` profile from Builder v1.10.5 is mounted with WORKERFS.
 - The runner seeks to 12, 24, or 48 evenly spaced positions and decodes the required frames.
 - The runner returns one RGB PPM sheet plus JSON metadata.
 - The browser converts the PPM sheet to Canvas and saves PNG or JPEG.
@@ -61,7 +61,7 @@ The generated standalone app has `connect-src 'none'`, no runtime external scrip
 
 ## Dependency model
 
-The source repository does not vendor FFmpeg JS/WASM. `dependencies.json` points to `ttomohisa/htmlapps-ffmpeg-wasm-builder` v1.10.4 and the `ffmpeg-wasm-video-contact-sheet-v{version}.zip` release asset. The repository build follows the same dependency-manifest/self-extract workflow as `htmlapps-lossless-video-cutter`.
+The source repository does not vendor FFmpeg JS/WASM. `dependencies.json` points to `ttomohisa/htmlapps-ffmpeg-wasm-builder` v1.10.5 and the `ffmpeg-wasm-video-contact-sheet-v{version}.zip` release asset. The repository build follows the same dependency-manifest/self-extract workflow as `htmlapps-lossless-video-cutter`.
 
 ## Standalone size
 
@@ -78,7 +78,7 @@ Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the 
 ## Bounded parallel extraction
 
 - At most two independent single-thread WASM Workers may participate in one generation. No SharedArrayBuffer or isolation headers are required.
-- Automatic two-Worker mode requires at least 4 reported logical processors and 8 GiB reported device memory; lower or unknown capacity uses one Worker.
+- Automatic two-Worker mode requires at least 4 reported logical processors and 8 GiB reported device memory; lower or unknown capacity uses one Worker. A thumbnail long edge above 640 px always forces one Worker, including an explicit two-Worker override. Validate all extraction arguments before attaching cancellation listeners or starting Workers.
 - Two partitions use alternating global sample indexes without changing requested count, geometry, seek times, or actual timestamps. Only owned rectangles are merged, and each global sample must appear exactly once.
 - Parallel errors or incompatible output terminate all parallel Workers before one single-Worker retry. No retry loop is allowed.
 - The separate manual regression harness reports chosen/final Worker count and stage timings. Production Generate uses capacity selection with no global benchmark override. Allocated WASM memory is labeled separately from browser peak memory. The UI, app version, filenames, regeneration guard, mobile tabs, and runtime network block remain unchanged.
@@ -89,6 +89,9 @@ Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the 
 - Stop uses an attempt-specific AbortSignal and prevents stale progress, success, errors, and delayed navigation from affecting a later attempt. Only the current successful attempt commits a replacement result.
 - Cache at most one committed RGB sheet and its metadata. Timestamp-only generation redraws it without FFmpeg extraction; source identity, frame count, and output resolution form the extraction cache key. Equal filename/size/mtime alone do not identify the same File.
 - Keep the explicit Generate action for pending settings.
-- Add Light / Standard / High resolution at STEP 2 and in the generation summary. Thumbnail sizes for 12/24/48 frames are respectively 160/140/110, 320/280/220 (default), and 480/420/330. All are within the existing helper's 96–640 range.
-- Explain the extra memory cost of High resolution, especially on phones. Retain bounded worker selection and avoid an unbounded history of RGB/canvas buffers.
+- Offer Light / Standard / High / Ultra resolution at STEP 2, in the generation summary, and in the result's source label. Thumbnail long edges for 12/24/48 frames are respectively 160/140/110, 320/280/220 (default), 480/420/330, and 960/840/660. The four controls use a two-by-two grid at widths up to 600 px.
+- Preserve the existing localized High warning. Add a separate Japanese/English Ultra warning that identifies it as PC-oriented, doubles High's long edge, and uses about four times the image memory. Higher resolution cannot recover absent source detail.
+- Runtime thumbnail arguments accept only integers in the inclusive range 96–960. Require a Builder with the matching range and an actual-output geometry cap of 25,000,000 pixels checked before allocation. Independently reject over-cap PPM headers, partition output, and Canvas dimensions in the app. Do not reject valid non-square geometry with a pessimistic count × thumbnail-size² check. Preserve legacy 640 px custom-column geometry, including 48 square frames in 15 columns (9600 × 2560 = 24,576,000 pixels).
+- Built-in Ultra square-sheet sizes are 3840 × 2880 (12), 5040 × 3360 (24), and 5280 × 3960 (48). The largest contains 20,908,800 pixels: 62,726,400 bytes of cached RGB plus 83,635,200 bytes for one RGBA surface, totaling 146,361,600 bytes. The general 25M cap bounds an RGB payload to 75,000,000 bytes and one RGBA surface to 100,000,000 bytes. These are buffer-size bounds, not process peak-memory bounds; WASM/decoder allocations, temporary RGBA data, previous retained results, browser/preview copies, and PNG/JPEG encoding are additional.
+- Ultra extraction starts one Worker and does not retry a single-Worker failure. Stop, transactional result replacement, prior-source CSV ownership, timestamp-only cached redraw, and editable export names work identically in all modes. Avoid an unbounded history of RGB/canvas buffers.
 - Preserve version 1.0.6, WORKERFS, runtime network blocking, existing mobile tabs, image and CSV exports, and editable output names.

@@ -202,16 +202,16 @@ test('successful generation exposes a collapsed localized Processing log without
   await f.get('langBtn').click(); assert.equal(summary.textContent, '処理ログ');
 });
 
-test('production uses the released partition-capable dependency pin without changing the app version', () => {
+test('production uses the released Ultra-capable dependency pin without changing the app version', () => {
   const fs = require('node:fs'), path = require('node:path');
   const root = path.resolve(__dirname, '..');
   const dependency = JSON.parse(fs.readFileSync(path.join(root, 'dependencies.json'), 'utf8')).dependencies[0];
-  assert.equal(dependency.version, '1.10.4');
+  assert.equal(dependency.version, '1.10.5');
   assert.equal(dependency.source, 'github-release');
   assert.equal(dependency.releaseAsset, 'ffmpeg-wasm-video-contact-sheet-v{version}.zip');
   assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'app.config.json'), 'utf8')).version, '1.0.6');
-  assert.match(fs.readFileSync(path.join(root, 'scripts/check-repository.ps1'), 'utf8'), /version -ne "1\.10\.4"/);
-  assert.match(fs.readFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8'), /ffmpeg-wasm-video-contact-sheet-v1\.10\.4\.zip/);
+  assert.match(fs.readFileSync(path.join(root, 'scripts/check-repository.ps1'), 'utf8'), /version -ne "1\.10\.5"/);
+  assert.match(fs.readFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8'), /ffmpeg-wasm-video-contact-sheet-v1\.10\.5\.zip/);
 });
 
 for (const workerCount of [1, 2]) test(`abort after ${workerCount} workers settle rejects without decoding or retry`, async () => {
@@ -219,4 +219,67 @@ for (const workerCount of [1, 2]) test(`abort after ${workerCount} workers settl
   const runner = { async run() { starts++; return { get files() { decodes++; throw new Error('must not decode cancelled result'); } }; } };
   const pending = api.extractContactSheet(runner, { file: new Blob(['x']), workerCount, signal: controller.signal }); controller.abort();
   await assert.rejects(pending, { name: 'AbortError' }); assert.equal(starts, workerCount); assert.equal(decodes, 0);
+});
+
+
+test('thumbnail arguments accept all Ultra sizes and preserve custom-column 640px compatibility', () => {
+  const { api } = runtime();
+  for (const [count, thumbSize] of [[12,960],[24,840],[48,660],[48,960],[48,640]]) {
+    const args = api.videoContactSheetArgs({ count, thumbSize, columns: 15 > count ? count : 15 });
+    assert.equal(value(args, '--thumb-size'), String(thumbSize));
+  }
+  for (const thumbSize of [95,961,960.1,0,-1,NaN,Infinity,'invalid']) assert.throws(() => api.videoContactSheetArgs({ thumbSize }), /96.*960/);
+});
+
+for (const [count, thumbSize] of [[12,960],[24,840],[48,660]]) test(`${count}-frame Ultra forces one Worker despite high capacity and a two-Worker override`, async () => {
+  const { api } = runtime(), calls = [];
+  const runner = { async run(opts) { calls.push(opts); return encode(output(count)); } };
+  const result = await api.extractContactSheet(runner, { file: new Blob(['x']), count, thumbSize, capabilities: { hardwareConcurrency: 16, deviceMemory: 16 }, workerCount: 2 });
+  assert.equal(calls.length, 1); assert.equal(calls[0].args.includes('--partition-count'), false);
+  assert.equal(value(calls[0].args, '--thumb-size'), String(thumbSize));
+  assert.equal(result.metrics.requestedWorkers, 1); assert.equal(result.metrics.workersUsed, 1); assert.equal(result.metrics.fallbackReason, null); assert.equal(result.metrics.attempts.length, 1);
+});
+
+test('the 640px boundary keeps two Workers and Ultra failures never retry', async () => {
+  const { api } = runtime(); let starts = 0;
+  const runner = { async run(opts) { starts++; return encode(output(12, Number(value(opts.args, '--partition-index')))); } };
+  const result = await api.extractContactSheet(runner, { file: new Blob(['x']), thumbSize: 640, workerCount: 2 });
+  assert.equal(starts, 2); assert.equal(result.metrics.workersUsed, 2);
+  starts = 0;
+  await assert.rejects(api.extractContactSheet({ async run() { starts++; throw new Error('Ultra allocation failed'); } }, { thumbSize: 641, workerCount: 2 }), /Ultra allocation failed/);
+  assert.equal(starts, 1);
+});
+
+test('invalid extraction arguments are rejected before touching an AbortSignal or starting Workers', async () => {
+  const { api } = runtime();
+  for (const options of [{ count: 13 }, { thumbSize: 961 }, { thumbSize: 95 }, { thumbSize: 96.5 }, { workerCount: 3, thumbSize: 960 }]) {
+    let starts = 0, listeners = 0;
+    const signal = { aborted: false, addEventListener() { listeners++; }, removeEventListener() {} };
+    await assert.rejects(api.extractContactSheet({ async run() { starts++; return encode(output()); } }, { ...options, workerCount: options.workerCount ?? 2, signal }), /count|thumbSize|worker/i);
+    assert.equal(starts, 0); assert.equal(listeners, 0, 'preflight cannot leak an abort listener');
+  }
+});
+
+test('Ultra cancellation terminates its only Worker without a retry', async () => {
+  const { api } = runtime(), controller = new AbortController(); let starts = 0, cancelled = 0;
+  const runner = { run(opts) { starts++; return new Promise((resolve, reject) => opts.signal.addEventListener('abort', () => { cancelled++; reject(new DOMException('stopped', 'AbortError')); }, { once: true })); } };
+  const pending = api.extractContactSheet(runner, { thumbSize: 660, count: 48, workerCount: 2, signal: controller.signal }); controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' }); assert.equal(starts, 1); assert.equal(cancelled, 1);
+});
+
+test('PPM decoding accepts exactly 25 million pixels but rejects a larger header before reading its payload', () => {
+  const { api } = runtime(), header = Buffer.from('P6\n5000 5000\n255\n');
+  const data = new Uint8Array(header.length + 25000000 * 3); data.set(header);
+  const decoded = api.decodePpmOutput({ files: [{ name: '/contact-sheet.ppm', data }] });
+  assert.equal(decoded.width * decoded.height, 25000000); assert.equal(decoded.pixels.byteLength, 75000000);
+  for (const dimensions of ['5001 5000','9007199254740992 1']) assert.throws(() => api.decodePpmOutput({ files: [{ name: '/contact-sheet.ppm', data: new Uint8Array(Buffer.from(`P6\n${dimensions}\n255\n`)) }] }), /pixel limit|25000000|header/);
+});
+
+test('partition merge rejects over-cap geometry before reading or modifying pixels', () => {
+  const { api } = runtime(), a = output(48, 0), b = output(48, 1); let pixelsRead = false;
+  for (const part of [a,b]) {
+    Object.assign(part.meta, { columns: 8, rows: 6, cellWidth: 1000, cellHeight: 1000, sheetWidth: 8000, sheetHeight: 6000 });
+    Object.defineProperty(part.ppm, 'pixels', { get() { pixelsRead = true; throw new Error('must not read pixels'); } });
+  }
+  assert.throws(() => api.mergeContactSheetPartitions([a,b], 48), /25000000|pixel limit/i); assert.equal(pixelsRead, false);
 });

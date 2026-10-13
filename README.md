@@ -20,7 +20,7 @@ No installation or account is required. It is useful for quickly reviewing movie
 
 - Sample **12 / 24 / 48 frames** evenly across the full video
 - Optional timestamp label on every frame; timestamp-only changes redraw cached frames without decoding the video again
-- Light / Standard / High output resolution, with Standard preserving the original output sizes
+- Light / Standard / High / Ultra output resolution, with Standard preserving the original output sizes and Ultra intended for PCs with ample memory
 - Stop an active generation; keep the last successful image and CSV available when a new attempt is stopped or fails
 - Support common containers such as MP4/MOV, MKV/WebM, AVI, and MPEG-TS
 - Local decoding for H.264, HEVC/H.265, VP8/VP9, AV1, MPEG-4, MJPEG, ProRes, and other enabled codecs
@@ -79,8 +79,13 @@ When only timestamp visibility changes, pressing **Generate contact sheet** redr
 | Light | 160 px | 140 px | 110 px |
 | Standard (default) | 320 px | 280 px | 220 px |
 | High | 480 px | 420 px | 330 px |
+| Ultra (PC-oriented) | 960 px | 840 px | 660 px |
 
-Values specify the long edge of each thumbnail; final sheet dimensions depend on video geometry. High can make fine details easier to inspect, but uses more memory and may take longer, especially on phones. It cannot recover detail absent from the source. Viewer zoom only magnifies the generated image.
+Values specify the long edge of each thumbnail; final sheet dimensions depend on video geometry. Standard remains the default. High can make fine details easier to inspect, but uses more memory and may take longer, especially on phones. Ultra doubles High's long edge and uses approximately four times the image memory. Choose it on a PC with ample memory; use Standard or Light if a phone cannot generate a sheet. Both warnings are localized, and the four controls form a two-by-two grid on narrow screens. No mode can recover detail absent from the source. Viewer zoom only magnifies the generated image.
+
+Ultra uses exactly one extraction Worker, even on a high-capacity device or when a two-Worker override is supplied to the helper. Sizes up to 640 px retain the existing conservative one/two-Worker selection and single retry after a parallel failure. Runtime arguments accept integer long edges from 96 through 960 px and are checked before any Worker starts. The Builder must support this range and reject actual sheet geometry above 25,000,000 pixels before allocating its output. The app independently checks decoded PPM, merged output, and Canvas dimensions against the same limit. The guard uses actual geometry rather than assuming square thumbnails, so a valid 640 px custom-column sheet remains supported, including 48 frames in 15 columns (24,576,000 pixels for square cells).
+
+The largest built-in output is 48 square Ultra frames: **5280 × 3960 = 20,908,800 pixels**. Its cached RGB payload is exactly **62,726,400 bytes** and one RGBA Canvas surface is **83,635,200 bytes**; together they account for **146,361,600 bytes**. These figures are not a browser peak-memory estimate: they exclude WASM/decoder memory, temporary RGBA data, retained previous results during replacement, browser overhead, preview copies, and PNG/JPEG encoding. At the helper's 25,000,000-pixel ceiling, one RGB payload is 75,000,000 bytes and one RGBA surface is 100,000,000 bytes. The pixel cap does not guarantee that every device has enough memory.
 
 ## Zoom controls
 
