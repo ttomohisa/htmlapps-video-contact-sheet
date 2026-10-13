@@ -112,19 +112,19 @@ for (const language of ['ja', 'en']) {
     assert.equal(f.api.state.busy, false); assert.equal(f.runs.length, 1);
   });
 
-  test(`failed regeneration keeps its error and empty result when language changes from ${language}`, async () => {
+  test(`failed regeneration keeps its error and prior result when language changes from ${language}`, async () => {
     const f = fixture({ language }); await f.result(); f.failNext(); await f.api.generate();
-    const message = f.get('error').textContent;
+    const message = f.get('error').textContent, pixels = f.get('canvas').bytes();
     assert.match(message, /synthetic failure/);
     for (let i = 0; i < 5; i++) {
       assert.equal(f.get('error').textContent, message);
       assert.equal(f.get('error').classList.contains('hidden'), false);
       assert.equal(f.get('details').classList.contains('hidden'), false);
-      assert.equal(f.api.state.generated, false); assert.equal(f.api.state.busy, false);
-      assert.equal(f.get('saveTimestampsBtn').disabled, true);
-      assert.equal(f.get('canvasWrap').classList.contains('hidden'), true);
-      assert.equal(f.get('emptyResult').classList.contains('hidden'), false);
-      assert.equal(f.runs.length, 2); assertProgress(f, 'analyzing', 3); assertSubtitle(f, false);
+      assert.equal(f.api.state.generated, true); assert.equal(f.api.state.busy, false);
+      assert.equal(f.get('saveTimestampsBtn').disabled, false);
+      assert.equal(f.get('canvasWrap').classList.contains('hidden'), false);
+      assert.equal(f.get('emptyResult').classList.contains('hidden'), true);
+      assert.equal(f.runs.length, 2); assertProgress(f, 'analyzing', 3); assertSubtitle(f, true); assert.deepEqual(f.get('canvas').bytes(), pixels);
       await f.get('langBtn').click();
     }
     await f.result(); assertProgress(f, 'done', 100); assertSubtitle(f, true);

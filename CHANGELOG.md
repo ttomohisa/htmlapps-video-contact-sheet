@@ -23,6 +23,11 @@
 
 ## Unreleased
 
+- Simplify the two Japanese overview phrases.
+- Add Stop generation and retain the last successful, source-labeled image/CSV after cancellation or failed regeneration.
+- Reuse the last RGB sheet when only timestamp visibility changes, while keeping the explicit Generate action.
+- Add Light / Standard / High output resolution with memory guidance; Standard retains the existing sizes.
+
 - Added local timestamp CSV export from the current generated result, including frame/row/column positions and actual decoded times.
 - Fixed image downloads borrowing a later filename or extension when PNG/JPEG encoding completes asynchronously.
 

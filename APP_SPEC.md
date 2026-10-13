@@ -82,3 +82,13 @@ Keep the existing sticky/scrolling overlay shells. A shared lifecycle makes the 
 - Two partitions use alternating global sample indexes without changing requested count, geometry, seek times, or actual timestamps. Only owned rectangles are merged, and each global sample must appear exactly once.
 - Parallel errors or incompatible output terminate all parallel Workers before one single-Worker retry. No retry loop is allowed.
 - The separate manual regression harness reports chosen/final Worker count and stage timings. Production Generate uses capacity selection with no global benchmark override. Allocated WASM memory is labeled separately from browser peak memory. The UI, app version, filenames, regeneration guard, mobile tabs, and runtime network block remain unchanged.
+
+## Generation recovery, redraw cache, and output resolution
+
+- Keep the last successful result visible and exportable while a new attempt runs, after cancellation, and after failure. Label its source video and keep its pixels, metadata, and save filename associated with that result.
+- Stop uses an attempt-specific AbortSignal and prevents stale progress, success, errors, and delayed navigation from affecting a later attempt. Only the current successful attempt commits a replacement result.
+- Cache at most one committed RGB sheet and its metadata. Timestamp-only generation redraws it without FFmpeg extraction; source identity, frame count, and output resolution form the extraction cache key. Equal filename/size/mtime alone do not identify the same File.
+- Keep the explicit Generate action for pending settings.
+- Add Light / Standard / High resolution at STEP 2 and in the generation summary. Thumbnail sizes for 12/24/48 frames are respectively 160/140/110, 320/280/220 (default), and 480/420/330. All are within the existing helper's 96–640 range.
+- Explain the extra memory cost of High resolution, especially on phones. Retain bounded worker selection and avoid an unbounded history of RGB/canvas buffers.
+- Preserve version 1.0.6, WORKERFS, runtime network blocking, existing mobile tabs, image and CSV exports, and editable output names.

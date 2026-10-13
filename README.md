@@ -19,14 +19,16 @@ No installation or account is required. It is useful for quickly reviewing movie
 ## Features
 
 - Sample **12 / 24 / 48 frames** evenly across the full video
-- Optional timestamp label on every frame
+- Optional timestamp label on every frame; timestamp-only changes redraw cached frames without decoding the video again
+- Light / Standard / High output resolution, with Standard preserving the original output sizes
+- Stop an active generation; keep the last successful image and CSV available when a new attempt is stopped or fails
 - Support common containers such as MP4/MOV, MKV/WebM, AVI, and MPEG-TS
 - Local decoding for H.264, HEVC/H.265, VP8/VP9, AV1, MPEG-4, MJPEG, ProRes, and other enabled codecs
 - Lightweight source thumbnail when browser-native decoding is available
 - Clear **Video → Frames → Generate → Result** workflow
 - Desktop highlights the step currently being worked on
 - Mobile uses fixed **Video / Frames / Generate / Result** page tabs
-- STEP 3 shows a **generation summary** for video, frame count, and timestamps
+- STEP 3 shows a **generation summary** for video, frame count, output resolution, and timestamps
 - After a successful generation, changed settings show **“Changes not yet applied”**
 - Changing settings keeps the current result visible; the result is refreshed **only when Generate contact sheet is pressed**
 - Full-screen result viewer with pinch / wheel zoom and drag panning
@@ -41,7 +43,7 @@ No installation or account is required. It is useful for quickly reviewing movie
 
 1. Drop a video onto the page or choose one from the file picker.
 2. Choose **12 / 24 / 48 frames**.
-3. Enable or disable timestamps as needed.
+3. Choose the output resolution and enable or disable timestamps as needed.
 4. Review the generation summary in STEP 3.
 5. Press **Generate contact sheet**.
 6. Review the result. Tap or click the image to open the zoom viewer.
@@ -60,9 +62,25 @@ More frames provide a finer timeline overview, but each cell becomes smaller. Th
 
 ## Settings and regeneration
 
-After a successful generation, changing the video, frame count, or timestamp option does not erase the current result. STEP 3 shows **“Changes not yet applied”**, and the new settings are applied the next time **Generate contact sheet** is pressed.
+After a successful generation, changing the video, frame count, output resolution, or timestamp option does not erase the current result. STEP 3 shows **“Changes not yet applied”**, and the new settings are applied the next time **Generate contact sheet** is pressed.
 
-If regeneration is requested with exactly the same video, frame count, and timestamp setting, the app avoids repeating the same expensive operation and instead guides the user back to the video or frame-count settings.
+If regeneration is requested with exactly the same video, frame count, output resolution, and timestamp setting, the app avoids repeating the same expensive operation and instead guides the user back to the video or frame-count settings.
+
+### Stop and keep the last result
+
+Use **Stop generation** while generating to cancel the current attempt. The last successful result remains available after cancellation or failure, including its original frame timestamps and editable save filename. The result identifies the source video it belongs to; a newly selected video does not change that result until generation succeeds.
+
+When only timestamp visibility changes, pressing **Generate contact sheet** redraws the cached frames instead of extracting them again. A different video, frame count, or output resolution requires fresh extraction. Only the latest successful extraction is cached in memory; reloading the page clears it.
+
+### Output resolution
+
+| Preset | 12 frames | 24 frames | 48 frames |
+| --- | ---: | ---: | ---: |
+| Light | 160 px | 140 px | 110 px |
+| Standard (default) | 320 px | 280 px | 220 px |
+| High | 480 px | 420 px | 330 px |
+
+Values specify the long edge of each thumbnail; final sheet dimensions depend on video geometry. High can make fine details easier to inspect, but uses more memory and may take longer, especially on phones. It cannot recover detail absent from the source. Viewer zoom only magnifies the generated image.
 
 ## Zoom controls
 
@@ -93,7 +111,7 @@ You can edit it before saving. Switching between PNG and JPEG preserves the base
 
 **Save timestamps (CSV)** exports the last successfully generated sheet’s metadata with stable columns: `frame,row,column,actual_seconds,timestamp`. Frame, row, and column are 1-based sheet positions; rows retain the stored sample order. `actual_seconds` preserves the returned decoded time, while `timestamp` uses the same whole-second label as the image (not frame-accurate timecode), even with the overlay off.
 
-Pending video, frame-count, or timestamp changes do not affect the CSV until successful regeneration. The CSV filename uses the displayed output basename plus `_timestamps.csv`; no source filename or user text is included in its cells. Missing or invalid metadata produces an inline error without a partial CSV. CSV export is local and does not decode frames or modify the image.
+Pending video, frame-count, output-resolution, or timestamp changes do not affect the CSV until successful regeneration. The CSV filename uses the displayed output basename plus `_timestamps.csv`; no source filename or user text is included in its cells. Missing or invalid metadata produces an inline error without a partial CSV. CSV export is local and does not decode frames or modify the image.
 
 Each image save also retains the name and PNG/JPEG format chosen when Save was pressed, even if you edit the filename or switch format while encoding finishes.
 
