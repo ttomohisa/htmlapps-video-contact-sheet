@@ -2,6 +2,20 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fixture } = require('./runtime-harness.cjs');
 
+test('Help explains unsupported video formats without WASM jargon in Japanese and English', async () => {
+  const { html } = require('./runtime-harness.cjs');
+  const japanese = 'DRMで保護された動画や、このアプリが対応していない動画形式は処理できません。';
+  const english = 'DRM-protected videos and video formats this app does not support cannot be processed.';
+  assert.equal(html.match(/<li data-i18n="note3">([^<]+)<\/li>/)[1], japanese);
+  const f = fixture({ language: 'ja' });
+  const note = f.nodes.find(node => node.dataset.i18n === 'note3');
+  assert.equal(note.textContent, japanese);
+  await f.get('langBtn').click();
+  assert.equal(note.textContent, english);
+  await f.get('langBtn').click();
+  assert.equal(note.textContent, japanese);
+});
+
 const labels = {
   ja: { preparing: '準備しています…', loading: 'FFmpeg WASMを準備しています…', analyzing: '動画を解析しています…', sampling: 'フレームを取得しています…', done: '完成しました', empty: '生成するとここにプレビューが表示されます。', ready: '画像をタップして拡大し、細部まで確認できます。' },
   en: { preparing: 'Preparing…', loading: 'Loading FFmpeg WASM…', analyzing: 'Analyzing video…', sampling: 'Sampling frames…', done: 'Done', empty: 'Your contact sheet preview will appear here.', ready: 'Tap the image to zoom in and inspect details before saving.' }
