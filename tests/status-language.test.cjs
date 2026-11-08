@@ -17,7 +17,7 @@ test('Help explains unsupported video formats without WASM jargon in Japanese an
 });
 
 const labels = {
-  ja: { preparing: '準備しています…', loading: 'FFmpeg WASMを準備しています…', analyzing: '動画を解析しています…', sampling: 'フレームを取得しています…', done: '完成しました', empty: '生成するとここにプレビューが表示されます。', ready: '画像をタップして拡大し、細部まで確認できます。' },
+  ja: { preparing: '準備しています…', loading: 'FFmpeg WASMを準備しています…', analyzing: '動画を解析しています…', sampling: 'フレームを取得しています…', done: '完成しました', empty: '作成した画像をここに表示します。', ready: '画像をタップして拡大し、細部まで確認できます。' },
   en: { preparing: 'Preparing…', loading: 'Loading FFmpeg WASM…', analyzing: 'Analyzing video…', sampling: 'Sampling frames…', done: 'Done', empty: 'Your contact sheet preview will appear here.', ready: 'Tap the image to zoom in and inspect details before saving.' }
 };
 function assertProgress(f, phase, percent) {

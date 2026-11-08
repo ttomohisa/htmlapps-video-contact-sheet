@@ -5,8 +5,8 @@ const { version } = require('../app.config.json');
 const vm = require('node:vm');
 
 const localized = {
-  ja: { language: 'EN', target: '英語に切り替え', help: '使い方と注意事項', close: '閉じる', privacy: '完全ローカル処理', tagline: '動画全体を一枚で見渡す', introTitle: '動画の流れを一枚の画像に' },
-  en: { language: 'JA', target: 'Switch to Japanese', help: 'How to use & notes', close: 'Close', privacy: 'Fully local processing', tagline: 'See the whole video at a glance.', introTitle: 'Turn a video into one visual overview.' }
+  ja: { language: 'EN', target: '英語に切り替え', help: '使い方と注意事項', close: '閉じる', privacy: '完全ローカル処理', tagline: '動画全体を一枚で見渡す', introTitle: '動画からコマ一覧を作成' },
+  en: { language: 'JA', target: 'Switch to Japanese', help: 'How to use & notes', close: 'Close', privacy: 'Fully local processing', tagline: 'See the whole video at a glance.', introTitle: 'Create a video contact sheet' }
 };
 function assertHeader(f, lang) {
   const expected = localized[lang];
