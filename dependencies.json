@@ -26,7 +26,8 @@
         }
       ],
       "archiveSha256": "3a224baaf89dabe401a411caed29c36b015f5718c48033754faea7bdf3929415",
-      "sourceSha256": "61a941c64865ef8373dd4454c45ea616da1641a5f7f71d057a3cbc879627ac9d"
+      "sourceSha256": "61a941c64865ef8373dd4454c45ea616da1641a5f7f71d057a3cbc879627ac9d",
+      "releaseAssetId": 636004596
     }
   ]
 }

@@ -145,13 +145,41 @@ function Get-GitHubReleasePackage([object]$Dependency) {
     $partial = "$archivePath.part"
     Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
     Write-Step "Downloading $repository $tag / $releaseAsset"
-    Invoke-ReleaseDownload -Uri "$baseUrl/$releaseAsset" -Destination $partial -Headers $headers
-    $actualSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $partial).Hash.ToLowerInvariant()
-    if ($actualSha256 -ne $expectedSha256) {
-      Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
-      throw "Release asset SHA-256 mismatch. Expected $expectedSha256 but got $actualSha256"
+    # The public Release API asset endpoint is an alternate to the GitHub
+    # browser download route, which can return persistent 504s on CI runners.
+    # Both sources must pass the same pinned SHA-256 check, without a token.
+    $downloadCandidates = @()
+    if ($Dependency.PSObject.Properties.Name -contains "releaseAssetId") {
+      $assetId = [long]$Dependency.releaseAssetId
+      if ($assetId -le 0) { throw "releaseAssetId must be a positive integer." }
+      $apiHeaders = @{ "User-Agent" = "htmlapps-video-contact-sheet/1.0"; "Accept" = "application/octet-stream"; "X-GitHub-Api-Version" = "2022-11-28" }
+      $downloadCandidates += @{ Name = "public GitHub Release asset API"; Url = "https://api.github.com/repos/$repository/releases/assets/$assetId"; Headers = $apiHeaders }
     }
-    Move-Item -Force -LiteralPath $partial -Destination $archivePath
+    $downloadCandidates += @{ Name = "GitHub Release download"; Url = "$baseUrl/$releaseAsset"; Headers = $headers }
+
+    $downloaded = $false
+    $lastFailure = ""
+    foreach ($candidate in $downloadCandidates) {
+      try {
+        Write-Step "Trying $($candidate.Name)"
+        Invoke-ReleaseDownload -Uri $candidate.Url -Destination $partial -Headers $candidate.Headers
+        # The API can return JSON metadata instead of binary; never accept it.
+        $actualSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $partial).Hash.ToLowerInvariant()
+        if ($actualSha256 -ne $expectedSha256) {
+          throw "Release asset SHA-256 mismatch via $($candidate.Name). Expected $expectedSha256 but got $actualSha256"
+        }
+        Move-Item -Force -LiteralPath $partial -Destination $archivePath
+        $downloaded = $true
+        break
+      } catch {
+        Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
+        $lastFailure = $_.Exception.Message
+        Write-Warning "$($candidate.Name) failed: $lastFailure"
+      }
+    }
+    if (-not $downloaded) {
+      throw "Could not download a SHA-256 verified Release asset: $lastFailure"
+    }
   }
 
   $archiveSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash.ToLowerInvariant()

@@ -99,6 +99,10 @@
           "sourceSha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
+          },
+          "releaseAssetId": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "additionalProperties": false
