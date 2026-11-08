@@ -19,7 +19,7 @@ The single stylesheet was refactored within the existing source. There are no fa
 
 The PR installs official Impeccable skill 4.8.1, invokes its verified 0.1.19 engine in GitHub Actions, and runs `context`, `concept-seed --scope direction --mode operate`, and `detect --json`. The references inform the design, but the rendered interface was separately reviewed by a human. Neither an interactive Impeccable direction-choice page nor a live overlay nor dual-agent critique was executed.
 
-An earlier follow-up scan flagged the zero inset on the borderless mobile chooser wrapper. That wrapper now has meaningful vertical padding. **Use the detector artifact of the current PR head for the authoritative final finding count**; a green workflow result alone does not guarantee zero findings because advisory issues do not fail that workflow. The context command also reports the pre-existing legacy `PRODUCT.md` format.
+An earlier follow-up scan flagged the zero inset on the borderless mobile chooser wrapper. That wrapper now has padding on all four sides, without reintroducing a decorated drop zone. **Use the detector artifact of the current PR head for the authoritative final finding count**; a green workflow result alone does not guarantee zero findings because advisory issues do not fail that workflow. The context command also reports the pre-existing legacy `PRODUCT.md` format.
 
 ## Real browser and media verification
 
