@@ -34,3 +34,10 @@ Verified against generated **standalone HTML artifacts**, not a mockup, in headl
 ## Not yet release-verified
 
 Physical phone touch testing, very large files and constrained memory, other codecs/containers, HDR color accuracy and cross-browser behavior remain to be checked. The README screenshots have not been refreshed. Keep this PR Draft until visual acceptance and the release review are complete.
+
+## Header and dialog polish audit
+- Compared the prior main-branch help overlay. Restored the *exact* previous neutral backdrop `rgba(18,20,18,.35)` from the main-branch `.dialog-backdrop`, instead of the green `#0e1c128c` introduced during the redesign.
+- Inspected renderings at 1440, 768, 390, and 320 CSS px in both normal and Help-open states. Header spacing follows the initial setup or editor work surface at desktop/tablet sizes; phone retains its familiar white bar. The non-functional hero and ornamental decoration remain absent.
+- Raised help prose from 12px to 14px with 1.65 line height, and section labels from 13px to 14px. This increases reading comfort; content may scroll inside the existing responsive dialog rather than being compressed or clipped.
+- Applied Impeccable 4.8.1's `polish`, `layout`, `craft-floor` and Operate-mode principles: preserve functionality/brand, use neutral overlays, coherent visual hierarchy, meaningful spacing, visible focus, user-readable limitations, and mobile-safe surfaces. CI runs the official pinned context/concept-seed/detector. A clean detector scan is not by itself visual sign-off; functional and rendered checks are separate.
+- No change to local processing, export, zoom, media handling, i18n strings, documented licenses or privacy behavior.

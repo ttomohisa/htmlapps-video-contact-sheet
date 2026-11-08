@@ -27,3 +27,8 @@ No runtime network requests or new dependencies; standalone HTML remains complet
 ## Mobile follow-up and zoom reliability
 - On the Video and Frames phone pages, the Next button lives in a fixed action row immediately above the four-tab bottom navigation. Content gets extra bottom padding so the action row never hides controls. The next step is usable without scrolling to the end of a long settings panel.
 - The zoom viewer reuses and temporarily reparents the **original generated canvas**, restoring it on close. There is no canvas-to-PNG encoding, blob URL or asynchronous image-load path on zoom. This avoids the long-lived "Preparing preview" state on phones and preserves the pixels used for PNG/JPEG export.
+
+## Header and help polish
+- The original neutral overlay scrim `rgba(18,20,18,.35)` is restored rather than introducing green-tinted dimming. The help text and headings are sized for reading, including inside scrollable phone dialogs.
+- At desktop widths, the header uses the same neutral workspace background and aligns its inner contents to the active work surface, rather than appearing as a separate edge-to-edge white banner. The initial centered setup uses its own aligned width; the loaded editor uses the wider workbench width. Tablet aligns to its stacked work surface. Phone stays white with the existing divider and 18px gutters.
+- The brand artwork, app title, canonical version and JA/EN Help controls are preserved; the header receives no decorative shadows, translucent blur, gradients or status badges.

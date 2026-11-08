@@ -98,3 +98,11 @@ test('app icon preserves the supplied SVG and canonical header/favicon artwork',
   }
   assert.match(html, /\.mark svg\{width:100%;height:100%\}/);
 });
+
+// Regression guard for neutral Help scrim and workspace-aligned header.
+test('Help uses the original neutral dimming and header aligns to the working surface', () => {
+  assert.match(html, /\.dialog-backdrop\{[^}]*background:rgba\(18,20,18,\.35\)/);
+  assert.match(html, /body:not\(\.has-video\) \.header-in\{width:min\(860px/);
+  assert.match(html, /@media\(max-width:600px\)\{\s*\.header\{background:#fff;border-bottom:1px solid var\(--line\)\}/);
+  assert.match(html, /\.dialog-body p,\.dialog-body li\{font-size:14px/);
+});
