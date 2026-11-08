@@ -37,7 +37,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-
 .mark svg{width:100%;height:100%}
 .brand h1{margin:0;font-size:14px;font-weight:750;line-height:1.2;letter-spacing:-.01em;white-space:normal}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ver{font-size:10px;font-weight:500;color:var(--muted);margin-left:6px;vertical-align:1px}
+.ver{display:inline-block;font-size:10px;font-weight:500;color:var(--muted);margin-left:6px;vertical-align:1px}
 .head-actions{display:flex;gap:4px;margin-left:auto;flex:none}
 .bare,.help{min-width:42px;min-height:42px;display:grid;place-items:center;padding:6px;border:0;border-radius:5px;background:transparent;color:var(--text);font-size:12px;font-weight:700}
 .bare:hover,.help:hover{background:var(--surface2)}
@@ -138,9 +138,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-
 .empty-result strong{display:block;color:var(--text);font-size:13px;font-weight:690}
 .empty-result span{display:block;max-width:32ch;margin:4px auto 0;font-size:11px;line-height:1.55}
 .empty-sheet-visual{display:none!important}
-.canvas-wrap{padding:18px;background:#ebeee9;overflow:auto;max-height:70vh}
-.canvas-shell{position:relative;width:max-content;max-width:min(100%,1100px);margin:auto;cursor:zoom-in;touch-action:manipulation;background:#151d17;box-shadow:0 8px 28px #15241a24}
-canvas{display:block;max-width:min(100%,1100px);height:auto}
+.canvas-wrap{padding:18px;background:#ebeee9;overflow:auto;max-height:70vh}.canvas-shell{position:relative;width:max-content;max-width:min(100%,1000px);margin:auto;cursor:zoom-in;touch-action:manipulation;background:#151d17;box-shadow:0 8px 28px #15241a24}canvas{display:block;max-width:min(100%,1100px);height:auto}
 .zoom-preview-hint{position:absolute;bottom:8px;right:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;background:#14241cdb;color:#fff;font-size:10px;pointer-events:none}
 .zoom-preview-hint svg{width:14px;height:14px}
 .result-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:16px 19px;border-top:1px solid var(--line)}
@@ -160,7 +158,7 @@ canvas{display:block;max-width:min(100%,1100px);height:auto}
 .save-btn svg{width:16px;height:16px;flex:none}
 #saveTimestampsBtn{margin-left:0}
 #timestampExportError{flex-basis:100%;margin:0}
-html:has(body.modal-open),body.modal-open,body.zoom-open{overflow:hidden}
+html:has(body.modal-open),body.modal-open{overflow:hidden}body.zoom-open{overflow:hidden}
 .dialog-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;background:#17281a70}
 .dialog{width:min(540px,100%);max-height:min(82vh,760px);overflow:auto;border-radius:8px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow2)}
 .dialog-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:12px;padding:14px 18px;background:#fff;border-bottom:1px solid var(--line)}
@@ -207,6 +205,7 @@ html:has(body.modal-open),body.modal-open,body.zoom-open{overflow:hidden}
   .panel:not(#resultPanel){margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
   #resultPanel{margin-top:18px}
 }
+@media(max-width:600px){.resolution-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){
   body.has-mobile-bottom-bar{padding-bottom:calc(var(--app-mobile-bottom-bar-height) + env(safe-area-inset-bottom))}
   .header-in{min-height:56px;padding:8px 14px}
@@ -246,6 +245,13 @@ html:has(body.modal-open),body.modal-open,body.zoom-open{overflow:hidden}
   #resultPanel{min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height) - env(safe-area-inset-bottom) - 36px)}
   .empty-result{min-height:300px;padding:26px 14px}
   .canvas-wrap{padding:8px;max-height:none}
+  body[data-mobile-page="result"] #canvasShell{max-width:min(100%,1000px)}
+  body[data-mobile-page="result"] #resultActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  body[data-mobile-page="result"] #resultActions #saveBtn{grid-column:1 / -1}
+  body[data-mobile-page="result"] #resultActions #saveTimestampsBtn{grid-column:1 / -1}
+  body[data-mobile-page="result"] #resultActions .format-group{display:flex;width:100%;min-width:0}
+  body[data-mobile-page="result"] #resultActions .format-group button{flex:1;padding:7px 6px}
+  body[data-mobile-page="result"] #resultActions #regenerateBtn{min-width:0;padding-inline:6px;white-space:normal;overflow-wrap:anywhere}
   .result-actions{padding:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .result-actions .filename-field{grid-column:1/-1}
   .result-actions .filename-help{display:none}
