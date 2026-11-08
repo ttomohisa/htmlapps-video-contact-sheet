@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { fixture } = require('./runtime-harness.cjs');
+const { fixture, html } = require('./runtime-harness.cjs');
 const { version } = require('../app.config.json');
 const vm = require('node:vm');
 
