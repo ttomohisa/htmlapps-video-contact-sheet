@@ -1,38 +1,36 @@
 # Impeccable design review — Video Contact Sheet
 
-## Why this iteration was necessary
+## Why this pass was needed
 
-The previous design still resembled a generated promotional landing page: a dark two-color hero, an oversized headline, a huge dashed upload card, broad empty regions and repetitive captions. That is not how someone uses a contact-sheet utility. Merely passing the Impeccable detector did not establish visual quality.
+The earlier PR revisions still looked like landing pages: a dark marketing-style hero, large empty preview surfaces, and repeated captions. Even the subsequent light editing layout left most of the desktop empty before a file existed, and centered a small phone picker in a vacant full screen. Automated design lint passing did not prove that those screens were useful.
 
-## Design decisions
+## The resulting task layout
 
-The new interface is **a neutral video editing workspace on first load**, not a hero screen.
+- **Desktop before file selection:** a compact, white two-column setup (video picker + Create action / frames + resolution + timestamps). There is deliberately no empty preview pane yet, and no promotional hero.
+- **Desktop with a video:** the full editor opens, with a 338px left settings rail and a right preview. When a real contact sheet is generated, the preview is shown at its natural aspect ratio, followed immediately by filename, PNG/JPEG, Save, Regenerate and CSV. The result pane no longer extends into a large blank gray tail below the exports.
+- **Phone initial screen:** an ordinary heading, concise local-processing statement and a full-width file-select button near the top. There is no unnecessary mobile drag/drop decoration. Selecting a file advances directly to the Frames tab.
+- **Phone result:** uncropped actual contact sheet; compact, unboxed output metadata; white space below exports rather than a gray unfilled panel. Safe-area-aware four-tab navigation is retained.
+- **Completed job:** the completion status remains visible, but the 100%-full progress bar is hidden; the processing log stays available on demand.
+- **UI copy:** the Japanese primary action is now 「コマ一覧を作成」 instead of the technical 「コンタクトシートを生成」. The Japanese and English empty-result messages now describe the next action rather than telling someone who already selected a file to select it again.
 
-- The compact source chooser, 12/24/48 selection, four resolutions, timestamp switch and Generate button remain visible even before a file is loaded. The Generate button is disabled until there is a file.
-- The large right pane is a neutral gray preview for the actual generated image. No sample frames or invented media.
-- The app uses white, quiet gray and small areas of #16624F for actions/selection, rather than full-bleed dark-green branding.
-- Settings are separated by straight dividers and proximity, not layers of rounded cards. Output actions stay with the real image.
-- The existing four mobile pages remain functional. Before selection, the Video page has one centrally presented file-selection task. On file selection the app advances to frame settings.
-- The standalone HTML's media processing, offline CSP, zoom, PNG/JPEG, CSV export, regeneration, cancel/error behavior, file clearing and help/licensing content remain unchanged.
+The single stylesheet was refactored within the existing source. There are no fabricated sample frames, decorative textures, added runtime dependencies or external network calls. Existing image processing, source preview, four output resolutions, cancellation, previous-result handling, help and license details remain intact.
 
-## Impeccable workflow
+## What Impeccable actually ran
 
-The PR installs the pinned official Impeccable 4.8.1 skill and runs its verified engine (0.1.19) in the dedicated Impeccable design review GitHub Actions workflow. The engine runs context, concept-seed (Operate mode), and detect --json.
+The PR installs official Impeccable skill 4.8.1, invokes its verified 0.1.19 engine in GitHub Actions, and runs `context`, `concept-seed --scope direction --mode operate`, and `detect --json`. The references inform the design, but the rendered interface was separately reviewed by a human. Neither an interactive Impeccable direction-choice page nor a live overlay nor dual-agent critique was executed.
 
-On UI source revision 039db13, the static detector exited **0 (no findings)**. This is a mechanical check, **not** a proof of visual quality. We separately inspected rendered screens and real-video behavior.
+An earlier follow-up scan flagged the zero inset on the borderless mobile chooser wrapper. That wrapper now has meaningful vertical padding. **Use the detector artifact of the current PR head for the authoritative final finding count**; a green workflow result alone does not guarantee zero findings because advisory issues do not fail that workflow. The context command also reports the pre-existing legacy `PRODUCT.md` format.
 
-An interactive Impeccable direction-choice page, its injected live design overlay, and a two-agent critique were **not executed**. Do not claim that they were. The context command also reports a legacy PRODUCT.md schema; fixing that record requires confirmed product facts, not speculation.
+## Real browser and media verification
 
-## Rendered and functional verification
+Verified against generated **standalone HTML artifacts**, not a mockup, in headless Chromium:
 
-Tested **the generated standalone HTML artifact**, not a mockup, in headless Chromium.
+- Initial state at 1440×900, 768×1024, 390×844 and 320×700, including horizontal document overflow and page JavaScript errors.
+- Japanese at desktop and 390px/320px phones; English at desktop and 390px phone.
+- Real local 3-second H.264 MP4 file selection and 12-frame, 1280×540 image generation on desktop and 390px phone; the Japanese phone flow was also verified at 320px.
+- Actual PNG, JPEG and timestamp CSV downloads, with correct filenames; zoom open/close. Verified the phone auto-advance to Frames after file selection.
+- No external HTTP(S) requests observed during those monitored browser runs.
 
-- 1440×900 desktop, 768×1024 tablet, 390×844 mobile and 320×700 narrow mobile, with no document-level horizontal overflow or page JavaScript errors.
-- Loaded a local short H.264 MP4 and successfully generated a 12-frame contact sheet at all four viewport sizes. PNG download succeeded at each size.
-- Independently tested Japanese on desktop and English on mobile with PNG, JPEG and timestamp CSV exports; image zoom opened/closed, the help dialog opened/closed, and exports used the expected extensions.
-- Network monitoring found no HTTP(S) requests, only local Blob URL requests associated with video processing/export.
-- GitHub regression checks cover the full generation state lifecycle and standalone build integrity.
+## Not yet release-verified
 
-## Remaining release checks
-
-Physical phone/touch operation, very long files, memory-constrained devices, alternative codecs/containers, HDR color accuracy and cross-browser review were not all re-run in this design pass. README screenshots are not yet updated. Keep the PR Draft until the user accepts the actual look and release review is complete.
+Physical phone touch testing, very large files and constrained memory, other codecs/containers, HDR color accuracy and cross-browser behavior remain to be checked. The README screenshots have not been refreshed. Keep this PR Draft until visual acceptance and the release review are complete.
