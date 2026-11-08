@@ -192,8 +192,8 @@ body.zoom-open{overflow:hidden}
  body:not(.has-video) .intro{display:block;margin:0;padding:58px clamp(28px,5vw,86px) 18px;border-radius:12px 12px 0 0;background:var(--stage);color:#fff}
  body:not(.has-video) .intro h2{font-size:42px;line-height:1.2;color:#fff}
  body:not(.has-video) .intro p{margin-top:13px;color:#cbddd0;font-size:16px}
- body:not(.has-video) .intro .local{position:absolute;top:123px;right:calc(clamp(18px,3vw,48px) + clamp(28px,5vw,86px));color:#d6e6d8}
- body:not(.has-video) #sourcePanel{padding:22px clamp(28px,5vw,86px) 64px;border-radius:0 0 12px 12px;background:var(--stage)}
+ body:not(.has-video) .intro .local{position:static;display:flex;margin-top:30px;color:#d6e6d8}
+ body:not(.has-video) #sourcePanel{min-height:calc(100dvh - 290px);padding:22px clamp(28px,5vw,86px) 64px;border-radius:0 0 12px 12px;background:var(--stage)}
  body:not(.has-video) #sourcePanel .panel-head{display:none}
  body:not(.has-video) #sourcePanel .drop{min-height:258px;width:100%;max-width:830px;margin:0 auto;border:2px dashed #b7ceb9;background:#f9fbf8}
  body:not(.has-video) #sourcePanel .drop strong{font-size:21px}
@@ -203,6 +203,12 @@ body.zoom-open{overflow:hidden}
  body:not(.has-video) .main>#sourceNextWrap,body:not(.has-video) .main>#countNextWrap{display:none}
 }
 @media(min-width:960px){
+ body:not(.has-video) .main{display:grid;grid-template-columns:minmax(0,43%) minmax(0,57%);grid-template-areas:"intro source";align-items:stretch}
+ body:not(.has-video) .intro{grid-area:intro;display:flex;flex-direction:column;justify-content:center;min-height:calc(100dvh - 145px);padding:54px 35px 54px clamp(38px,4.4vw,78px);border-radius:12px 0 0 12px}
+ body:not(.has-video) .intro h2{font-size:46px;line-height:1.2;letter-spacing:-.03em}
+ body:not(.has-video) .intro p{font-size:16px;max-width:34ch}
+ body:not(.has-video) #sourcePanel{grid-area:source;display:flex;align-items:center;justify-content:center;min-height:calc(100dvh - 145px);padding:50px clamp(32px,4.2vw,70px);border-radius:0 12px 12px 0;background:var(--stage2)}
+ body:not(.has-video) #sourcePanel .drop{width:100%;max-width:none;min-height:320px}
  body.has-video .main{display:grid;grid-template-columns:minmax(335px,390px) minmax(0,1fr);
   grid-template-areas:"source preview" "frames preview" "generate preview";align-items:start;column-gap:0;row-gap:0}
  body.has-video .intro{display:none}
@@ -262,7 +268,7 @@ body.zoom-open{overflow:hidden}
  body[data-mobile-page="generate"] .main>#sourcePanel,body[data-mobile-page="generate"] .main>#countPanel,body[data-mobile-page="generate"] .main>#resultPanel,
  body[data-mobile-page="result"] .main>#sourcePanel,body[data-mobile-page="result"] .main>#countPanel,body[data-mobile-page="result"] .main>#generatePanel{display:none}
  body:not([data-mobile-page="video"]) .intro{display:none}
- body:not(.has-video)[data-mobile-page="video"] .main{padding:0;min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height))}
+ body:not(.has-video)[data-mobile-page="video"] .main{padding:0;min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height));background:var(--stage)}
  body:not(.has-video)[data-mobile-page="video"] .intro{padding:40px 24px 18px;margin:0;background:var(--stage);color:#fff}
  body:not(.has-video)[data-mobile-page="video"] .intro h2{font-size:29px;color:#fff}
  body:not(.has-video)[data-mobile-page="video"] .intro p{color:#c3d5c6;font-size:14px}
@@ -270,7 +276,7 @@ body.zoom-open{overflow:hidden}
  body:not(.has-video)[data-mobile-page="video"] #sourcePanel .panel-head{display:none}
  body:not(.has-video)[data-mobile-page="video"] #sourcePanel .drop{min-height:245px;background:#f8fbf8}
  body:not(.has-video)[data-mobile-page="video"] #sourcePanel .drop strong{font-size:17px}
- body[data-mobile-page="result"] .main{padding:0;min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height))}
+ body[data-mobile-page="result"] .main{padding:0;min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height));background:#fff}
  body[data-mobile-page="result"] #resultPanel{margin:0;border:0;border-radius:0;min-height:0}
  body[data-mobile-page="result"] #resultPanel .result-head{display:block;padding:20px 17px 17px}
  body[data-mobile-page="result"] #resultPanel .result-head h3{font-size:20px}

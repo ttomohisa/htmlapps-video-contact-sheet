@@ -5,7 +5,7 @@
 The **image** is the reason for the interface. The product should feel like a practical screening desk, not a set of generic green cards.
 
 ### Two distinct working states
-1. **No video:** a large, dark green editing field presents one job: select a video. Frame settings and the result pane are temporarily hidden on desktop, because there is nothing to preview yet. On mobile, the existing page tabs remain usable, but the Video page occupies the full available surface.
+1. **No video:** a large, dark green editing field presents one job: select a video. On wide screens the explanatory headline is the left side of a full-height split composition, with one large upload target on the right; on phones the dark entry surface extends behind the entire first screen. Frame settings and the result pane are temporarily hidden on desktop, because there is nothing to preview yet. On mobile, the existing page tabs remain usable, but the Video page occupies the full available surface.
 2. **Video loaded:** the page becomes an asymmetric two-column workspace. The left white control rail is narrow, quiet and well spaced; the much larger right pane is a deep-green viewing stage. The real contact sheet sits here. The save/export area is a crisp white footer directly beneath that image, never another floating card.
 
 The strong contrast is functional: light surfaces are for decisions, dark surfaces are for looking at media. This is **Operate** mode, so typography remains simple and controls recognizable.
