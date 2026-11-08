@@ -1,31 +1,38 @@
-# Impeccable redesign review — Video Contact Sheet
+# Impeccable design review — Video Contact Sheet
 
-## Actual methodology
+## Why this iteration was necessary
 
-The PR's `Impeccable design review` GitHub Actions workflow invokes the **official, pinned Impeccable 4.8.1 skill engine (0.1.19)**, with SHA-256 validation of the downloaded engine. It runs `context --target src/index.template.html`, `concept-seed --scope direction --mode operate`, and `detect --json src/index.template.html`. The detector results are uploaded as an artifact. This is a real CLI run, not a claim that copied reference files execute automatically.
+The previous design still resembled a generated promotional landing page: a dark two-color hero, an oversized headline, a huge dashed upload card, broad empty regions and repetitive captions. That is not how someone uses a contact-sheet utility. Merely passing the Impeccable detector did not establish visual quality.
 
-The engine's randomized concept-seed is recorded for traceability, but this design uses the existing Browser Kitty constraints and the user-requested practical, restrained tool experience, not an imported decorative theme. No interactive Impeccable decision page was presented to the user, and no live-browser injected overlay or two-agent critique was run.
+## Design decisions
 
-## Human visual critique and changes
+The new interface is **a neutral video editing workspace on first load**, not a hero screen.
 
-- The previous version had fake content thumbnails in its initial preview, redundant step/kicker labels, pastel-tinted cards inside cards, and a second 12KB layer of overriding CSS.
-- The replacement uses a single self-contained style sheet with no overlay layer, compact options, flat settings sections, a larger real-result pane, and a deliberately blank initial result.
-- Selected state remains expressed through borders, contrast and `aria-pressed`, not hue alone; green is retained for primary actions.
-- The four independent phone pages, exact app IDs and state machine remain intact. No video-processing or privacy model changes.
+- The compact source chooser, 12/24/48 selection, four resolutions, timestamp switch and Generate button remain visible even before a file is loaded. The Generate button is disabled until there is a file.
+- The large right pane is a neutral gray preview for the actual generated image. No sample frames or invented media.
+- The app uses white, quiet gray and small areas of #16624F for actions/selection, rather than full-bleed dark-green branding.
+- Settings are separated by straight dividers and proximity, not layers of rounded cards. Output actions stay with the real image.
+- The existing four mobile pages remain functional. Before selection, the Video page has one centrally presented file-selection task. On file selection the app advances to frame settings.
+- The standalone HTML's media processing, offline CSP, zoom, PNG/JPEG, CSV export, regeneration, cancel/error behavior, file clearing and help/licensing content remain unchanged.
 
-## Browser and functional evidence
+## Impeccable workflow
 
-Tested by loading the **generated standalone HTML** (not a mockup) in headless Chromium with the local browser's normal CSP and DOM:
+The PR installs the pinned official Impeccable 4.8.1 skill and runs its verified engine (0.1.19) in the dedicated Impeccable design review GitHub Actions workflow. The engine runs context, concept-seed (Operate mode), and detect --json.
 
-- 1440 × 900 desktop, 768 × 1024 tablet, 390 × 844 phone, 320 × 700 small phone; checked visible panels, bottom tabs, and document width.
-- At both desktop 1440px and phone 390px, loaded an actual local four-second H.264 MP4, generated 12 frames, observed the rendered 1280 × 540 result, and completed a PNG download.
-- The generated result appeared without JavaScript page errors, and document horizontal overflow was zero.
-- Viewed empty state, file-selected state, generated state, and phone frame-count/Generate/Result tab states.
-- Verified 12/24/48 choices, localization and cancellation/regenerate state logic with the repository's regression tests in CI.
+On UI source revision 039db13, the static detector exited **0 (no findings)**. This is a mechanical check, **not** a proof of visual quality. We separately inspected rendered screens and real-video behavior.
 
-## Remaining limitations
+An interactive Impeccable direction-choice page, its injected live design overlay, and a two-agent critique were **not executed**. Do not claim that they were. The context command also reports a legacy PRODUCT.md schema; fixing that record requires confirmed product facts, not speculation.
 
-- The browser test above is a headless Chromium test, not a physical iPhone or Android touch test.
-- Real-video processing was not exercised with large/long videos, HEVC, HDR, cancellation during a long job, or low-memory devices in the manual browser run.
-- The Impeccable `context` command flags the repository's existing `PRODUCT.md` as a legacy schema. Updating that record should be done using Impeccable `init` with confirmed product facts, not by inventing missing answers during a UI task.
-- Generated preview screenshots are ephemeral review evidence and are not automatically synced into the README; the README screenshots should be reviewed before release.
+## Rendered and functional verification
+
+Tested **the generated standalone HTML artifact**, not a mockup, in headless Chromium.
+
+- 1440×900 desktop, 768×1024 tablet, 390×844 mobile and 320×700 narrow mobile, with no document-level horizontal overflow or page JavaScript errors.
+- Loaded a local short H.264 MP4 and successfully generated a 12-frame contact sheet at all four viewport sizes. PNG download succeeded at each size.
+- Independently tested Japanese on desktop and English on mobile with PNG, JPEG and timestamp CSV exports; image zoom opened/closed, the help dialog opened/closed, and exports used the expected extensions.
+- Network monitoring found no HTTP(S) requests, only local Blob URL requests associated with video processing/export.
+- GitHub regression checks cover the full generation state lifecycle and standalone build integrity.
+
+## Remaining release checks
+
+Physical phone/touch operation, very long files, memory-constrained devices, alternative codecs/containers, HDR color accuracy and cross-browser review were not all re-run in this design pass. README screenshots are not yet updated. Keep the PR Draft until the user accepts the actual look and release review is complete.
