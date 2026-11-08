@@ -10,7 +10,7 @@ Impeccable is a development-time design skill, **not a runtime dependency** of V
 
 In Codex CLI, open the project directory and invoke `$impeccable`, e.g. `$impeccable critique src/index.template.html` or `$impeccable adapt src/index.template.html`. An engine binary may be fetched on the first use of the launcher in a development environment.
 
-The design detector is **not enabled as an automatic hook** by this manual installation. No hook bypasses approval; locally review and enable the Codex hook before relying on it. The headless Impeccable detector and live design review were **not run** in the commit environment; the normal app CI is a separate check. To run a manual design scan on a development machine with the prerequisites available:
+The design detector is **not enabled as an automatic hook** by this manual installation. No hook bypasses approval; locally review and enable the Codex hook before relying on it. The PR has a dedicated `Impeccable design review` GitHub Actions workflow: it invokes the pinned official engine for `context`, `concept-seed --scope direction --mode operate`, and `detect --json`, preserving the detector report as an artifact. The automated detector is distinct from the human visual critique; the latter requires rendered desktop/mobile checks. To run a manual design scan on a development machine with the prerequisites available:
 
 ```sh
 npx impeccable detect src/
