@@ -1,0 +1,44 @@
+name: Impeccable design review
+on:
+  pull_request:
+    paths:
+      - "src/index.template.html"
+      - "DESIGN.md"
+      - ".agents/skills/impeccable/**"
+      - ".github/workflows/impeccable-design-review.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Load official Impeccable context
+        run: .agents/skills/impeccable/scripts/impeccable context --target src/index.template.html
+      - name: Generate the Operate-mode direction seed
+        run: .agents/skills/impeccable/scripts/impeccable concept-seed --scope direction --mode operate
+      - name: Run official deterministic design detector
+        shell: bash
+        run: |
+          set +e
+          .agents/skills/impeccable/scripts/impeccable detect --json src/index.template.html > "$RUNNER_TEMP/impeccable-detect.json" 2> "$RUNNER_TEMP/impeccable-error.log"
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/impeccable-error.log"
+          cat "$RUNNER_TEMP/impeccable-detect.json"
+          echo "Detector exit code: $code (0=clean, 2=findings)"
+          if [ "$code" -ne 0 ] && [ "$code" -ne 2 ]; then exit "$code"; fi
+      - name: Upload detector result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: impeccable-design-findings
+          path: |
+            ${{ runner.temp }}/impeccable-detect.json
+            ${{ runner.temp }}/impeccable-error.log
+          if-no-files-found: ignore
+          retention-days: 7
