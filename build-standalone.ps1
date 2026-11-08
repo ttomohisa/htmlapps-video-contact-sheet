@@ -40,6 +40,23 @@ function Get-SafeId([string]$Value) {
   return $Value
 }
 
+# Retry only network transport failures; hash verification remains mandatory.
+function Invoke-ReleaseDownload([string]$Uri, [string]$Destination, [hashtable]$Headers) {
+  $maxAttempts = 3
+  for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+    try {
+      Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $Destination
+      Invoke-WebRequest -Uri $Uri -OutFile $Destination -UseBasicParsing -Headers $Headers
+      return
+    } catch {
+      Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $Destination
+      if ($attempt -eq $maxAttempts) { throw }
+      Write-Warning "Release download failed (attempt $attempt of $maxAttempts). Retrying: $($_.Exception.Message)"
+      Start-Sleep -Seconds (3 * $attempt)
+    }
+  }
+}
+
 function Get-GitHubReleasePackage([object]$Dependency) {
   $repository = [string]$Dependency.repository
   $version = [string]$Dependency.version
@@ -72,7 +89,7 @@ function Get-GitHubReleasePackage([object]$Dependency) {
     Write-Step "Downloading checksum list for $repository $tag"
     $partial = "$checksumsPath.part"
     Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
-    Invoke-WebRequest -Uri "$baseUrl/$checksumsAsset" -OutFile $partial -UseBasicParsing -Headers $headers
+    Invoke-ReleaseDownload -Uri "$baseUrl/$checksumsAsset" -Destination $partial -Headers $headers
     Move-Item -Force -LiteralPath $partial -Destination $checksumsPath
   }
 
@@ -109,7 +126,7 @@ function Get-GitHubReleasePackage([object]$Dependency) {
     $partial = "$archivePath.part"
     Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
     Write-Step "Downloading $repository $tag / $releaseAsset"
-    Invoke-WebRequest -Uri "$baseUrl/$releaseAsset" -OutFile $partial -UseBasicParsing -Headers $headers
+    Invoke-ReleaseDownload -Uri "$baseUrl/$releaseAsset" -Destination $partial -Headers $headers
     $actualSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $partial).Hash.ToLowerInvariant()
     if ($actualSha256 -ne $expectedSha256) {
       Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
