@@ -1,29 +1,25 @@
 # DESIGN — Video Contact Sheet
-## Working purpose
-This is an **Operate** surface. Its sole task is to turn a local video into a contact-sheet image and make saving that image reliable. The generated image, not the application chrome, is the thing to inspect.
 
-## Layout and hierarchy
-- A compact product header and one explanatory sentence. No promotional hero, cosmetic step labels or ornamental previews.
-- On wide screens, a 300–360 px column contains video selection, frame count, resolution, timestamps and Generate. A larger right pane is reserved for the result image and export.
-- Each input group is separated primarily by whitespace rather than its own colored card. Only the actual video drop zone, summary, and result frame need a boundary.
-- Before a video is generated, the result surface is deliberately blank except for the explanatory empty state; there is no simulated thumbnail imagery.
-- Tablet widths use a single vertical flow; phones retain the four **real page tabs**, not scroll links.
-- The actual contact sheet is displayed without cropping; zoom and save live immediately adjacent to the real result. After generation, the mobile result pane shrinks to the image and export actions instead of leaving a blank viewport-sized tail.
+## Direction: a working screening room
 
-## Visual system
-- Browser Kitty green `#16624F` is reserved for the primary Generate/Save actions and selected states.
-- Warm neutral light canvas `#F7F8F6`, white controls, dark green-tinted ink `#202B25`, and low-contrast dividers `#D5DDD6`.
-- Controls use compact 4–6px radii, a small number of type sizes and clear focus outlines. No drop shadows on forms, no blur or animated entrance effects.
-- Use existing SVG app icon; no decorative icon tiles or fake contact-sheet images.
-- Functional text is at least 11px; main body and control text generally 12px or larger.
-- Honor `prefers-reduced-motion`, touch-safe controls, keyboard focus, and screen-reader state.
+The **image** is the reason for the interface. The product should feel like a practical screening desk, not a set of generic green cards.
 
-## Interaction states
-- A selected file replaces the drop area with a file tile. Clearing resets the file state.
-- 12/24/48, four resolution settings and timestamps remain directly editable.
-- Keep the generated result on cancellation/failure and show clear pending settings.
-- Preserve zoom, filename, format toggle, JPEG/PNG, CSV export, and regenerate controls, including phone bottom safe area.
-- Keep original file handling and local `connect-src 'none'` network boundary.
+### Two distinct working states
+1. **No video:** a large, dark green editing field presents one job: select a video. Frame settings and the result pane are temporarily hidden on desktop, because there is nothing to preview yet. On mobile, the existing page tabs remain usable, but the Video page occupies the full available surface.
+2. **Video loaded:** the page becomes an asymmetric two-column workspace. The left white control rail is narrow, quiet and well spaced; the much larger right pane is a deep-green viewing stage. The real contact sheet sits here. The save/export area is a crisp white footer directly beneath that image, never another floating card.
 
-## Non-goals
-No FFmpeg changes, new runtime dependencies, altered output formats, new permissions or Browser Kitty homepage copy changes.
+The strong contrast is functional: light surfaces are for decisions, dark surfaces are for looking at media. This is **Operate** mode, so typography remains simple and controls recognizable.
+
+### Brand and UI
+- Preserve #16624F for primary actions and active states; dark stage is #101F19, not a decorative gradient.
+- Flat controls, consistent 6px corners, legible 12–15px utility labels, and 28px frame counts.
+- Use one family for Japanese and English interface text. No decorative fonts, fake film-frame images, pseudo-metric cards, glass effects, giant ornamental labels or section numbers.
+- Show real filename/duration metadata once loaded. Preserve all limitations and help/licensing text.
+- Visually combine the three left workflow sections as one control surface (no nested cards). Hide the duplicate generate summary on wide screens; retain it on the mobile Generate page for orientation.
+- Keep zoom, PNG/JPEG, CSV, filename editing and regenerate available alongside real output.
+
+### Responsive and operational boundaries
+- At 960px+, show white rail and dark stage side by side; from 601–959px stack them.
+- At <=600px, retain the four actual tabs, with safe-area-aware bottom navigation. The Result page is full-bleed dark for preview and white for export.
+- Keep focus, selected-state borders, text contrast, error/recovery, file clearing, cancellation, previous completed output and all existing JS operations.
+- No additional runtime files or network access. The single HTML stays self-contained, and runtime CSP connect-src 'none' remains in force.
