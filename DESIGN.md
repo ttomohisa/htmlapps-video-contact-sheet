@@ -8,7 +8,7 @@ This is an **Operate** surface. Its sole task is to turn a local video into a co
 - Each input group is separated primarily by whitespace rather than its own colored card. Only the actual video drop zone, summary, and result frame need a boundary.
 - Before a video is generated, the result surface is deliberately blank except for the explanatory empty state; there is no simulated thumbnail imagery.
 - Tablet widths use a single vertical flow; phones retain the four **real page tabs**, not scroll links.
-- The actual contact sheet is displayed without cropping; zoom and save live immediately adjacent to the real result.
+- The actual contact sheet is displayed without cropping; zoom and save live immediately adjacent to the real result. After generation, the mobile result pane shrinks to the image and export actions instead of leaving a blank viewport-sized tail.
 
 ## Visual system
 - Browser Kitty green `#16624F` is reserved for the primary Generate/Save actions and selected states.

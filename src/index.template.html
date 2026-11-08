@@ -242,8 +242,8 @@ html:has(body.modal-open),body.modal-open{overflow:hidden}body.zoom-open{overflo
   .generate-summary{margin-top:12px}
   .result-head{padding:13px 14px}
   .result-head p{font-size:11px}
-  #resultPanel{min-height:calc(100dvh - 56px - var(--app-mobile-bottom-bar-height) - env(safe-area-inset-bottom) - 36px)}
-  .empty-result{min-height:300px;padding:26px 14px}
+  #resultPanel{min-height:0}
+  .empty-result{min-height:max(360px,calc(100dvh - 180px - env(safe-area-inset-bottom)));padding:26px 14px}
   .canvas-wrap{padding:8px;max-height:none}body[data-mobile-page="result"] #canvasShell{max-width:min(100%,1000px)}body[data-mobile-page="result"] #resultActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}body[data-mobile-page="result"] #resultActions #saveBtn{grid-column:1 / -1}body[data-mobile-page="result"] #resultActions #saveTimestampsBtn{grid-column:1 / -1}body[data-mobile-page="result"] #resultActions .format-group{display:flex;width:100%;min-width:0}body[data-mobile-page="result"] #resultActions .format-group button{flex:1;padding:7px 6px}body[data-mobile-page="result"] #resultActions #regenerateBtn{min-width:0;padding-inline:6px;white-space:normal;overflow-wrap:anywhere}
   .result-actions{padding:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .result-actions .filename-field{grid-column:1/-1}
