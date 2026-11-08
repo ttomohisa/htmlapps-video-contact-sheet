@@ -103,3 +103,14 @@ test('reopening zoom and regenerating keep the same canvas and never allocate Bl
   await f.get('zoomClose').click();
   assert.equal(f.get('canvasShell').contains(f.get('canvas')),true);
 });
+
+test('phone Next action stays pinned just above mobile tabs without obscuring the settings', () => {
+  assert.match(html,/\.panel-next-wrap\{position:fixed;z-index:72;left:0;right:0;bottom:calc\(var\(--app-mobile-bottom-bar-height\)/);
+  assert.match(html,/body\[data-mobile-page="frames"\] #countPanel\{padding-bottom:105px\}/);
+  assert.match(html,/\.panel-next\{width:100%;min-height:50px;justify-content:center/);
+});
+test('phone zoom toolbar keeps controls on one line at narrow widths', () => {
+  assert.match(html,/\.zoom-viewer\{grid-template-columns:minmax\(0,1fr\);width:100%;max-width:100%\}/);
+  assert.match(html,/\.zoom-toolbar-title\{position:absolute;width:1px;height:1px/);
+  assert.match(html,/\.zoom-toolbar \.zoom-control\{flex:0 0 auto;white-space:nowrap/);
+});

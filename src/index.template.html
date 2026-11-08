@@ -159,6 +159,16 @@ body[data-mobile-page="result"] #resultActions .spacer{display:none}
 .app-mobile-bottom-item.is-active,.app-mobile-bottom-item[aria-current="page"]{color:var(--accent);background:transparent;font-weight:750;box-shadow:inset 0 2px 0 var(--accent)}
 .app-mobile-bottom-item:disabled{opacity:.42}
 .dialog-backdrop{align-items:end;padding:0}.dialog{width:100%;max-height:86dvh;border-radius:10px 10px 0 0}.confirm-actions .btn{flex:1}}
+@media(max-width:600px){
+/* Zoom toolbar remains a single row even on 320px devices. */
+.zoom-viewer{grid-template-columns:minmax(0,1fr);width:100%;max-width:100%}
+.zoom-viewport{width:100%;min-width:0}
+.zoom-toolbar{min-width:0;gap:5px;padding:calc(7px + env(safe-area-inset-top)) 10px 7px}
+.zoom-toolbar-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+#zoomFit{margin-right:auto}
+.zoom-toolbar .zoom-control{flex:0 0 auto;white-space:nowrap;min-height:42px;padding:6px 9px}
+.zoom-scale{flex:0 0 auto;min-width:42px}
+}
 @media(max-width:360px){.brand h1{font-size:12px}.head-actions{gap:0}.result-actions .btn{padding-inline:7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
