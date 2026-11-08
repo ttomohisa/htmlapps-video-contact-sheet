@@ -26,7 +26,7 @@ No installation or account is required. It is useful for quickly reviewing movie
 - Local decoding for H.264, HEVC/H.265, VP8/VP9, AV1, MPEG-4, MJPEG, ProRes, and other enabled codecs
 - Lightweight source thumbnail when browser-native decoding is available
 - Clear **Video → Frames → Generate → Result** workflow
-- Desktop highlights the step currently being worked on
+- Desktop uses a two-column workspace: settings on the left and a persistent result preview on the right
 - Mobile uses fixed **Video / Frames / Generate / Result** page tabs
 - STEP 3 shows a **generation summary** for video, frame count, output resolution, and timestamps
 - After a successful generation, changed settings show **“Changes not yet applied”**

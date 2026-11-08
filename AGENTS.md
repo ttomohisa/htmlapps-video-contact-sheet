@@ -19,3 +19,8 @@ This repository contains Video Contact Sheet, a Browser Kitty single-HTML app.
 ## Validation
 
 Run `scripts/check-repository.ps1` before publishing.
+
+## UI design
+- Impeccable Codex skill: `.agents/skills/impeccable/SKILL.md`; project truth: `PRODUCT.md`; design decisions: `DESIGN.md`.
+- Review mobile and desktop states, keyboard focus, overflow, progress and empty/error/result states before claiming UI quality.
+- Impeccable is only a development-time design tool; never load it in the standalone app.
