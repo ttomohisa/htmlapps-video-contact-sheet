@@ -1,25 +1,26 @@
 # DESIGN — Video Contact Sheet
 
-## Direction: a working screening room
+## Direction: a utility workspace, not a landing page
 
-The **image** is the reason for the interface. The product should feel like a practical screening desk, not a set of generic green cards.
+The original PR variant used a full-height dark split hero, dramatic page surfaces, floating card-like controls and duplicated descriptions. They made an everyday tool look like a generic product showcase.
 
-### Two distinct working states
-1. **No video:** a large, dark green editing field presents one job: select a video. On wide screens the explanatory headline is the left side of a full-height split composition, with one large upload target on the right; on phones the dark entry surface extends behind the entire first screen. Frame settings and the result pane are temporarily hidden on desktop, because there is nothing to preview yet. On mobile, the existing page tabs remain usable, but the Video page occupies the full available surface.
-2. **Video loaded:** the page becomes an asymmetric two-column workspace. The left white control rail is narrow, quiet and well spaced; the much larger right pane is a deep-green viewing stage. The real contact sheet sits here. The save/export area is a crisp white footer directly beneath that image, never another floating card.
+The redesign chooses **an immediately usable editor** instead. The complete tool is present on load: video chooser, 12/24/48, resolution, timestamp option and a disabled Generate action on a quiet left utility rail; a large neutral result canvas occupies the right. The structure does not jump after loading a file.
 
-The strong contrast is functional: light surfaces are for decisions, dark surfaces are for looking at media. This is **Operate** mode, so typography remains simple and controls recognizable.
+## UI constraints
 
-### Brand and UI
-- Preserve #16624F for primary actions and active states; dark stage is #101F19, not a decorative gradient.
-- Flat controls, consistent 6px corners, legible 12–15px utility labels, and 28px frame counts.
-- Use one family for Japanese and English interface text. No decorative fonts, fake film-frame images, pseudo-metric cards, glass effects, giant ornamental labels or section numbers.
-- Show real filename/duration metadata once loaded. Preserve all limitations and help/licensing text.
-- Visually combine the three left workflow sections as one control surface (no nested cards). Hide the duplicate generate summary on wide screens; retain it on the mobile Generate page for orientation.
-- Keep zoom, PNG/JPEG, CSV, filename editing and regenerate available alongside real output.
+- No promotional hero, illustrative thumbnails, ornamental status bars, kicker labels, decorative gradients, dark green marketing background, or multi-layer cards.
+- Brand green #16624F only for generation/save, selected options and active phone navigation. Neutral white and softly warm gray carry the workspace and image.
+- Thin straight dividers (not rounded cards), modest radius 4px on real controls. Settings use conventional labels and group proximity. Keep this as a working web utility.
+- Image preview must be uncropped and visually dominant once generated. Output filename, PNG/JPEG, Save and CSV stay immediately beneath it. Empty result remains honestly empty.
+- Tight type hierarchy with only one system UI font; compact data labels but no intentionally tiny text. No external font dependency.
+- Header names the app. Hide the redundant tagline, marketing-like hero and repeated privacy badge; retain accurate privacy details inside the help and source section.
 
-### Responsive and operational boundaries
-- At 960px+, show white rail and dark stage side by side; from 601–959px stack them.
-- At <=600px, retain the four actual tabs, with safe-area-aware bottom navigation. The Result page is full-bleed dark for preview and white for export.
-- Keep focus, selected-state borders, text contrast, error/recovery, file clearing, cancellation, previous completed output and all existing JS operations.
-- No additional runtime files or network access. The single HTML stays self-contained, and runtime CSP connect-src 'none' remains in force.
+## Responsive
+
+- Desktop has a persistent 338px option rail and a broad preview; tablet stacks those.
+- Phone keeps the current four functional tabs, but uses plain active-state top rules rather than shaded pills. The initial Video page centers only the file selection action; choosing a video advances to Frames, as before.
+- Preserve accessible focus/keyboard behavior, safe-area-aware phone navigation, and no horizontal overflow at 320px.
+- Keep all existing controls, generation/stop/error states, output preservation after failed regeneration, viewer zoom and help/licensing details.
+
+## Technical boundaries
+No runtime network requests or new dependencies; standalone HTML remains completely self-contained. The no-network CSP and original media processing are unchanged. Impeccable's machine checks are a floor, not a substitute for actual rendering and task-based visual critique.
