@@ -4,7 +4,7 @@
 
 The original PR variant used a full-height dark split hero, dramatic page surfaces, floating card-like controls and duplicated descriptions. They made an everyday tool look like a generic product showcase.
 
-The redesign chooses **an immediately usable editor** instead. The complete tool is present on load: video chooser, 12/24/48, resolution, timestamp option and a disabled Generate action on a quiet left utility rail; a large neutral result canvas occupies the right. The structure does not jump after loading a file.
+The redesign chooses **an immediately usable editor** instead. On desktop, before a file is selected, a compact 860px two-column setup shows the video chooser, frame count, resolution, timestamp option and disabled Create action. The result pane appears only when a video is selected, at which point the interface expands into an editor with a narrow setting rail and wide result workspace. There is never a huge empty result pane before a video exists. After generation, the result ends with export controls rather than an empty gray tail.
 
 ## UI constraints
 
@@ -18,8 +18,8 @@ The redesign chooses **an immediately usable editor** instead. The complete tool
 ## Responsive
 
 - Desktop has a persistent 338px option rail and a broad preview; tablet stacks those.
-- Phone keeps the current four functional tabs, but uses plain active-state top rules rather than shaded pills. The initial Video page centers only the file selection action; choosing a video advances to Frames, as before.
-- Preserve accessible focus/keyboard behavior, safe-area-aware phone navigation, and no horizontal overflow at 320px.
+- Phone keeps the current four functional tabs, but uses plain active-state top rules rather than shaded pills. The initial Video page places a plain, full-width primary file button near the top, instead of a lonely drag/drop hero in the middle. Choosing a video advances to Frames, as before. Result metadata becomes a compact borderless line; the result page remains white below the export controls.
+- Preserve accessible focus/keyboard behavior, safe-area-aware phone navigation, and no horizontal overflow at 320px. Completed jobs show a short completion label instead of retaining a full progress bar at 100%.
 - Keep all existing controls, generation/stop/error states, output preservation after failed regeneration, viewer zoom and help/licensing details.
 
 ## Technical boundaries
