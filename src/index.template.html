@@ -86,7 +86,7 @@ html:has(body.modal-open),body.modal-open{overflow:hidden}body.zoom-open{overflo
 .confirm-box{width:min(450px,100%)}.confirm-body{padding:20px}.confirm-body h2{font-size:16px;margin:0 0 8px}.confirm-body p{font-size:12px;color:var(--muted);margin:0}.confirm-actions{display:flex;gap:7px;justify-content:flex-end;padding:0 20px 20px;flex-wrap:wrap}
 .zoom-viewer{position:fixed;inset:0;z-index:140;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#101710;color:#fff;overscroll-behavior:none}
 .zoom-toolbar{display:flex;align-items:center;gap:8px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:#202b22;border-bottom:1px solid #ffffff22}.zoom-toolbar-title{margin-right:auto;font-size:12px;font-weight:700;white-space:nowrap}.zoom-control{min-height:42px;padding:7px 10px;border:1px solid #ffffff45;border-radius:5px;background:#ffffff10;color:#fff;font-size:12px}.zoom-scale{min-width:48px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums}.zoom-close{width:43px;font-size:21px}
-.zoom-viewport{position:relative;overflow:hidden;min-height:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}.zoom-viewport.is-dragging{cursor:grabbing}.zoom-image{position:absolute;left:50%;top:50%;max-width:none;max-height:none;width:auto;height:auto;transform-origin:center center;will-change:transform;pointer-events:none;-webkit-user-drag:none}.zoom-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px;background:#ffffff16;font-size:12px}.zoom-footer{padding:9px 12px calc(9px + env(safe-area-inset-bottom));background:#202b22;color:#d5ded6;border-top:1px solid #ffffff28;font-size:12px;text-align:center}.zoom-viewer.hidden{display:none!important}
+.zoom-viewport{position:relative;overflow:hidden;min-height:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}.zoom-viewport.is-dragging{cursor:grabbing}.zoom-image{position:absolute;left:50%;top:50%;max-width:none;max-height:none;width:auto;height:auto;transform-origin:center center;will-change:transform;pointer-events:none;-webkit-user-drag:none}.zoom-image canvas{display:block;width:100%;height:100%;max-width:none;max-height:none}.zoom-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px;background:#ffffff16;font-size:12px}.zoom-footer{padding:9px 12px calc(9px + env(safe-area-inset-bottom));background:#202b22;color:#d5ded6;border-top:1px solid #ffffff28;font-size:12px;text-align:center}.zoom-viewer.hidden{display:none!important}
 .app-mobile-bottom-bar{display:none}
 @media(min-width:601px){
 body:not(.has-video) #resultPanel{display:none}
@@ -125,8 +125,13 @@ body:not(.has-video)[data-mobile-page="video"] #sourcePanel .drop:hover{backgrou
 .options{margin-top:24px}.switchline{min-height:48px;font-size:13px}
 .generate{min-height:53px;font-size:14px}.generate-summary{margin-bottom:18px;padding:13px}.summary-item span{font-size:12px}.summary-item strong{font-size:13px}
 .panel-next-wrap{display:none;justify-content:flex-end;margin-top:24px}.panel-next{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:6px 0;border:0;background:transparent;color:var(--accent);font-size:13px;font-weight:730}.panel-next svg{width:18px;height:18px}
+/* Keep Next reachable without scrolling; leave room above the bottom tab bar. */
+.panel-next-wrap{position:fixed;z-index:72;left:0;right:0;bottom:calc(var(--app-mobile-bottom-bar-height) + env(safe-area-inset-bottom));margin:0;padding:9px 16px 10px;background:#fff;border-top:1px solid var(--line)}
+.panel-next{width:100%;min-height:50px;justify-content:center;gap:9px;padding:10px 16px;background:var(--accent);color:#fff;border-radius:5px;font-size:14px}
+.panel-next:hover{background:var(--accent2)}
 body[data-mobile-page="video"] #sourceNextWrap:not(.hidden){display:flex}
 body[data-mobile-page="frames"] #countNextWrap{display:flex}
+body[data-mobile-page="video"] #sourcePanel,body[data-mobile-page="frames"] #countPanel{padding-bottom:105px}
 body[data-mobile-page="video"] .main>#countPanel,body[data-mobile-page="video"] .main>#generatePanel,body[data-mobile-page="video"] .main>#resultPanel,
 body[data-mobile-page="frames"] .main>#sourcePanel,body[data-mobile-page="frames"] .main>#generatePanel,body[data-mobile-page="frames"] .main>#resultPanel,
 body[data-mobile-page="generate"] .main>#sourcePanel,body[data-mobile-page="generate"] .main>#countPanel,body[data-mobile-page="generate"] .main>#resultPanel,
@@ -203,7 +208,7 @@ body[data-mobile-page="result"] #resultActions .spacer{display:none}
   </div>
   <div id="zoomViewport" class="zoom-viewport">
     <div id="zoomLoading" class="zoom-loading" data-i18n="zoomPreparing">プレビューを準備中…</div>
-    <img id="zoomImage" class="zoom-image hidden" alt="" draggable="false" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+    <div id="zoomImage" class="zoom-image hidden" role="img"></div>
   </div>
   <div class="zoom-footer" data-i18n="zoomHelp">ピンチまたはホイールで拡大・縮小。ドラッグで移動。ダブルタップ / ダブルクリックで100%表示を切り替えます。</div>
 </div>
@@ -888,43 +893,34 @@ function saveTimestamps(){
   const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$('timestampExportError').classList.add('hidden');
 }
 
-const zoomState={request:0,cancelLoad:null,url:null,scale:1,fitScale:1,panX:0,panY:0,pointers:new Map(),pinch:null,drag:null,lastTapAt:0,lastTapX:0,lastTapY:0};
-function revokeZoomUrl(){if(zoomState.url){URL.revokeObjectURL(zoomState.url);zoomState.url=null}}
+const zoomState={scale:1,fitScale:1,panX:0,panY:0,pointers:new Map(),pinch:null,drag:null,lastTapAt:0,lastTapX:0,lastTapY:0};
 function zoomBounds(){const min=Math.max(.01,zoomState.fitScale),max=Math.max(4,min*8);return{min,max}}
-function renderZoom(){if(!els.zoomImage)return;els.zoomImage.style.transform=`translate(-50%,-50%) translate(${zoomState.panX}px,${zoomState.panY}px) scale(${zoomState.scale})`;els.zoomScale.textContent=`${Math.round(zoomState.scale*100)}%`}
+function renderZoom(){els.zoomImage.style.transform=`translate(-50%,-50%) translate(${zoomState.panX}px,${zoomState.panY}px) scale(${zoomState.scale})`;els.zoomScale.textContent=`${Math.round(zoomState.scale*100)}%`}
 function fitZoom(){if(els.zoomViewer.classList.contains('hidden')||!els.canvas.width||!els.canvas.height)return;const rect=els.zoomViewport.getBoundingClientRect(),pad=24;zoomState.fitScale=Math.min(Math.max(.01,(rect.width-pad)/els.canvas.width),Math.max(.01,(rect.height-pad)/els.canvas.height),1);zoomState.scale=zoomState.fitScale;zoomState.panX=0;zoomState.panY=0;renderZoom()}
 function setZoomAt(nextScale,clientX,clientY){const rect=els.zoomViewport.getBoundingClientRect(),bounds=zoomBounds(),scale=Math.max(bounds.min,Math.min(bounds.max,nextScale)),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;const imageX=(clientX-(cx+zoomState.panX))/zoomState.scale,imageY=(clientY-(cy+zoomState.panY))/zoomState.scale;zoomState.panX=clientX-cx-imageX*scale;zoomState.panY=clientY-cy-imageY*scale;zoomState.scale=scale;renderZoom()}
 function setZoom100(){zoomState.scale=1;zoomState.panX=0;zoomState.panY=0;renderZoom()}
 function toggleZoom100(clientX,clientY){const target=Math.abs(zoomState.scale-1)<.04?zoomState.fitScale:1;setZoomAt(target,clientX,clientY)}
-function canvasBlob(canvas){return new Promise(resolve=>canvas.toBlob(resolve,'image/png'))}
-async function openZoom(){
-  if(!state.generated||!els.canvas.width)return;
-  zoomState.cancelLoad?.();
-  const request=++zoomState.request,canvas=els.canvas,signature=state.lastGenerationSignature;
-  const ownsPreview=()=>zoomState.request===request&&els.canvas===canvas&&state.lastGenerationSignature===signature&&!els.zoomViewer.classList.contains('hidden');
-  openOverlay(els.zoomViewer,els.zoomClose);document.body.classList.add('zoom-open');els.zoomLoading.textContent=t('zoomPreparing');els.zoomLoading.classList.remove('hidden');els.zoomImage.classList.add('hidden');revokeZoomUrl();
-  try{
-    const blob=await canvasBlob(canvas);if(!ownsPreview())return;
-    if(!blob)throw new Error('Preview image could not be created.');
-    // Only the current request may create or own the active URL. Close/reopen revokes it.
-    zoomState.url=URL.createObjectURL(blob);
-    const loaded=await new Promise(resolve=>{
-      let settled=false;
-      const finish=loaded=>{if(settled)return;settled=true;if(zoomState.cancelLoad===cancel){zoomState.cancelLoad=null;els.zoomImage.onload=null;els.zoomImage.onerror=null}resolve(loaded)};
-      const cancel=()=>finish(false);zoomState.cancelLoad=cancel;
-      els.zoomImage.onload=()=>finish(true);els.zoomImage.onerror=()=>finish(false);els.zoomImage.src=zoomState.url;
-    });
-    if(!ownsPreview())return;if(!loaded)throw new Error('Preview image could not be loaded.');
-    els.zoomImage.classList.remove('hidden');els.zoomLoading.classList.add('hidden');requestAnimationFrame(()=>{if(ownsPreview())fitZoom()});
-  }catch{
-    if(!ownsPreview())return;
-    revokeZoomUrl();els.zoomImage.removeAttribute('src');els.zoomLoading.textContent=state.lang==='ja'?'プレビューを開けませんでした。':'Could not open preview.';
-  }
+function openZoom(){
+  if(!state.generated||!els.canvas.width||!els.zoomViewer.classList.contains('hidden'))return;
+  // Show the already rendered canvas itself. Avoid PNG encoding, Blob URLs and image
+  // decode: those asynchronous steps may never settle on memory-constrained phones.
+  els.zoomImage.style.width=els.canvas.width+'px';
+  els.zoomImage.style.height=els.canvas.height+'px';
+  els.zoomImage.setAttribute('aria-label',t('zoomTitle'));
+  els.zoomImage.appendChild(els.canvas);
+  els.zoomImage.classList.remove('hidden');
+  els.zoomLoading.classList.add('hidden');
+  openOverlay(els.zoomViewer,els.zoomClose);
+  document.body.classList.add('zoom-open');
+  fitZoom();
 }
 function closeZoom(){
-  ++zoomState.request;zoomState.cancelLoad?.();
+  // Always return exactly the same canvas: downloads and the ordinary preview
+  // must still refer to the image that was generated, without a second copy.
+  if(els.zoomImage.contains(els.canvas))els.canvasShell.insertBefore(els.canvas,els.canvasShell.firstChild);
   if(!els.zoomViewer.classList.contains('hidden'))closeOverlay(els.zoomViewer);
-  document.body.classList.remove('zoom-open');zoomState.pointers.clear();zoomState.pinch=null;zoomState.drag=null;els.zoomViewport.classList.remove('is-dragging');els.zoomImage.removeAttribute('src');els.zoomImage.classList.add('hidden');els.zoomLoading.classList.remove('hidden');els.zoomLoading.textContent=t('zoomPreparing');revokeZoomUrl();
+  document.body.classList.remove('zoom-open');zoomState.pointers.clear();zoomState.pinch=null;zoomState.drag=null;els.zoomViewport.classList.remove('is-dragging');
+  els.zoomImage.classList.add('hidden');els.zoomImage.style.transform='';els.zoomLoading.classList.add('hidden');
 }
 function pointerCenter(points){const items=[...points.values()];if(items.length<2)return null;return{x:(items[0].x+items[1].x)/2,y:(items[0].y+items[1].y)/2,dist:Math.hypot(items[0].x-items[1].x,items[0].y-items[1].y)}}
 function beginRemainingDrag(){const item=[...zoomState.pointers.entries()][0];if(!item){zoomState.drag=null;return}zoomState.drag={id:item[0],x:item[1].x,y:item[1].y,panX:zoomState.panX,panY:zoomState.panY,moved:false}}

@@ -24,3 +24,6 @@ The redesign chooses **an immediately usable editor** instead. On desktop, befor
 
 ## Technical boundaries
 No runtime network requests or new dependencies; standalone HTML remains completely self-contained. The no-network CSP and original media processing are unchanged. Impeccable's machine checks are a floor, not a substitute for actual rendering and task-based visual critique.
+## Mobile follow-up and zoom reliability
+- On the Video and Frames phone pages, the Next button lives in a fixed action row immediately above the four-tab bottom navigation. Content gets extra bottom padding so the action row never hides controls. The next step is usable without scrolling to the end of a long settings panel.
+- The zoom viewer reuses and temporarily reparents the **original generated canvas**, restoring it on close. There is no canvas-to-PNG encoding, blob URL or asynchronous image-load path on zoom. This avoids the long-lived "Preparing preview" state on phones and preserves the pixels used for PNG/JPEG export.
