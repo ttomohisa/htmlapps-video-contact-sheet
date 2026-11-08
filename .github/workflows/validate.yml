@@ -8,6 +8,24 @@ permissions:
   contents: read
 
 jobs:
+  source-regression:
+    name: Test source without downloading FFmpeg
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+      - name: Test UI states and extraction orchestration with mocked runner
+        run: >-
+          node --test
+          tests/export.test.cjs
+          tests/header.test.cjs
+          tests/status-language.test.cjs
+          tests/generation-lifecycle.test.cjs
+          tests/dialog-lifecycle.test.cjs
+          tests/parallel-extraction.test.cjs
+          tests/benchmark.test.cjs
   validate:
     runs-on: windows-latest
     steps:
