@@ -85,29 +85,48 @@ function Get-GitHubReleasePackage([object]$Dependency) {
   }
   New-Item -ItemType Directory -Force -Path $packageRoot | Out-Null
 
-  if (-not (Test-Path -LiteralPath $checksumsPath)) {
-    Write-Step "Downloading checksum list for $repository $tag"
-    $partial = "$checksumsPath.part"
-    Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
-    Invoke-ReleaseDownload -Uri "$baseUrl/$checksumsAsset" -Destination $partial -Headers $headers
-    Move-Item -Force -LiteralPath $partial -Destination $checksumsPath
+  # Pinned SHA-256 hashes come from the published GitHub Release asset digests.
+  # Prefer these immutable project inputs over an extra checksums.txt download;
+  # the pinned archive digest is always checked against actual bytes below.
+  $hasArchivePin = $Dependency.PSObject.Properties.Name -contains "archiveSha256"
+  $hasSourcePin = $Dependency.PSObject.Properties.Name -contains "sourceSha256"
+  if ($hasArchivePin -ne $hasSourcePin) {
+    throw "Both archiveSha256 and sourceSha256 must be pinned together."
   }
 
-  $expectedSha256 = $null
-  $sourceSha256 = $null
-  foreach ($line in Get-Content -Encoding UTF8 -LiteralPath $checksumsPath) {
-    if ($line -match '^\s*([0-9A-Fa-f]{64})\s+\*?(.+?)\s*$') {
-      $hash = $Matches[1].ToLowerInvariant()
-      $name = $Matches[2]
-      if ($name -eq $releaseAsset) { $expectedSha256 = $hash }
-      if ($name -eq $sourceAsset) { $sourceSha256 = $hash }
+  if ($hasArchivePin) {
+    $expectedSha256 = [string]$Dependency.archiveSha256
+    $sourceSha256 = [string]$Dependency.sourceSha256
+    if ($expectedSha256 -cnotmatch '^[0-9a-f]{64}$' -or $sourceSha256 -cnotmatch '^[0-9a-f]{64}$') {
+      throw "Pinned Release SHA-256 values must be 64 lowercase hexadecimal characters."
     }
-  }
-  if ([string]::IsNullOrWhiteSpace([string]$expectedSha256)) {
-    throw "SHA256SUMS.txt does not contain an entry for $releaseAsset"
-  }
-  if ([string]::IsNullOrWhiteSpace([string]$sourceSha256)) {
-    throw "SHA256SUMS.txt does not contain an entry for corresponding source asset $sourceAsset"
+    Write-Step "Using pinned SHA-256 for $repository $tag (archive and corresponding source)."
+  } else {
+    if (-not (Test-Path -LiteralPath $checksumsPath)) {
+      Write-Step "Downloading checksum list for $repository $tag"
+      $partial = "$checksumsPath.part"
+      Remove-Item -Force -ErrorAction SilentlyContinue -LiteralPath $partial
+      Invoke-ReleaseDownload -Uri "$baseUrl/$checksumsAsset" -Destination $partial -Headers $headers
+      Move-Item -Force -LiteralPath $partial -Destination $checksumsPath
+    }
+  
+    $expectedSha256 = $null
+    $sourceSha256 = $null
+    foreach ($line in Get-Content -Encoding UTF8 -LiteralPath $checksumsPath) {
+      if ($line -match '^\s*([0-9A-Fa-f]{64})\s+\*?(.+?)\s*$') {
+        $hash = $Matches[1].ToLowerInvariant()
+        $name = $Matches[2]
+        if ($name -eq $releaseAsset) { $expectedSha256 = $hash }
+        if ($name -eq $sourceAsset) { $sourceSha256 = $hash }
+      }
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$expectedSha256)) {
+      throw "SHA256SUMS.txt does not contain an entry for $releaseAsset"
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$sourceSha256)) {
+      throw "SHA256SUMS.txt does not contain an entry for corresponding source asset $sourceAsset"
+    }
+  
   }
 
   $needsDownload = -not (Test-Path -LiteralPath $archivePath)
